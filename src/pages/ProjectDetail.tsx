@@ -68,7 +68,6 @@ const ProjectDetail = () => {
   const [manualTranscript, setManualTranscript] = useState("");
   const [submittingTranscript, setSubmittingTranscript] = useState(false);
 
-  // Use a ref for activeTab so fetchData doesn't re-create on tab change
   const activeTabRef = useRef(activeTab);
   activeTabRef.current = activeTab;
 
@@ -84,11 +83,9 @@ const ProjectDetail = () => {
     const outputList = (outs as Output[]) ?? [];
     setOutputs(outputList);
 
-    // Set first tab only on initial load, not on polls
     if (!isPolling && outputList.length > 0 && !activeTabRef.current) {
       setActiveTab(outputList[0].format_type);
     }
-    // On poll: if outputs arrived and no tab selected yet, pick first
     if (isPolling && outputList.length > 0 && !activeTabRef.current) {
       setActiveTab(outputList[0].format_type);
     }
@@ -97,20 +94,17 @@ const ProjectDetail = () => {
     return proj;
   };
 
-  // Initial load
   useEffect(() => {
     fetchData(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user]);
 
-  // Polling — only while processing
   useEffect(() => {
     if (!project) return;
     if (project.status !== "processing") return;
 
     const interval = setInterval(async () => {
       const proj = await fetchData(true);
-      // Stop polling once no longer processing
       if (proj && proj.status !== "processing") {
         clearInterval(interval);
       }
@@ -238,7 +232,6 @@ const ProjectDetail = () => {
     setManualTranscript("");
   };
 
-  // ── Loading ──────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F8F5F0]">
@@ -329,7 +322,6 @@ const ProjectDetail = () => {
                     ? "Couldn't extract captions from that YouTube video — it may have captions disabled or restricted. Paste the transcript manually to continue."
                     : "Something went wrong during generation. Paste your transcript below to retry."}
                 </p>
-
                 {!showManualInput ? (
                   <div className="flex flex-wrap gap-3 justify-center">
                     <Button
@@ -385,7 +377,7 @@ const ProjectDetail = () => {
 
           {/* ── Completed with outputs ── */}
           {project.status === "completed" && outputs.length > 0 && (
-            <div className="grid grid-cols-1 -cols-[200px_1fr] gap-5">
+            <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr] gap-5">
               {/* Format tabs */}
               <div className="flex lg:flex-col gap-2 overflow-x-auto pb-1 lg:pb-0 lg:overflow-visible">
                 {(project.selected_outputs ?? []).map(fmt => (
@@ -420,7 +412,7 @@ const ProjectDetail = () => {
                         <p className="font-sans text-xs text-stone-400 mt-0.5">{formatTips[activeTab]}</p>
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        oltip>
+                        <Tooltip>
                           <TooltipTrigger asChild>
                             <div>
                               <Select
@@ -432,33 +424,84 @@ const ProjectDetail = () => {
                                 </SelectTrigger>
                                 <SelectContent className="rounded-xl border-stone-200">
                                   <SelectItem value="professional">Professional</SelectItem>
-    m value="casual">Casual</SelectItem>
+                                  <SelectItem value="casual">Casual</SelectItem>
                                   <SelectItem value="punchy">Punchy</SelectItem>
                                 </SelectContent>
                               </Select>
-          </div>
-          )}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>Change tone and regenerate</TooltipContent>
+                        </Tooltip>
 
-        </main>
-      </div>
-    </TooltipProvider>
-  );
-};
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="outline" size="sm"
+                              className="gap-1.5 rounded-xl border-stone-200 text-stone-600 hover:bg-stone-50 font-sans"
+                              onClick={() => handleRegenerate()}
+                              disabled={regenerating}
+                            >
+                              {regenerating
+                                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                : <RefreshCw className="h-3.5 w-3.5" />}
+                              <span className="hidden sm:inline">Regenerate</span>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Regenerate with same tone</TooltipContent>
+                        </Tooltip>
 
-export default ProjectDetail;
- flex items-center justify-center py-16">
-              <div className="text-center">
-                <p className="font-sans text-stone-400 text-sm mb-3">No outputs found.</p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-2 rounded-xl border-stone-200 font-sans"
-                  onClick={() => fetchData(false)}
-                >
-                  <RefreshCw className="h-3.5 w-3.5" /> Refresh
-                </Button>
-              </div>
-  
+                        {dirty && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="outline" size="sm"
+                                className="gap-1.5 rounded-xl border-stone-200 text-stone-600 hover:bg-stone-50 font-sans"
+                                onClick={handleSave}
+                                disabled={saving}
+                              >
+                                {saving
+                                  ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                  : <Save className="h-3.5 w-3.5" />}
+                                <span className="hidden sm:inline">Save</span>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Save edits</TooltipContent>
+                          </Tooltip>
+                        )}
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="outline" size="sm"
+                              className="gap-1.5 rounded-xl border-stone-200 text-stone-600 hover:bg-stone-50 font-sans"
+                              onClick={handleCopy}
+                            >
+                              {copied
+                                ? <Check className="h-3.5 w-3.5 text-emerald-500" />
+                                : <Copy className="h-3.5 w-3.5" />}
+                              {copied ? "Copied" : "Copy"}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Copy to clipboard</TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs text-stone-400 font-sans">
+                      <span>{activeOutput.content.split(/\s+/).filter(Boolean).length} words</span>
+                      {charLimit && (
+                        <span className={charCount > charLimit ? "text-red-400 font-medium" : ""}>
+                          {charCount} / {charLimit} chars
+                        </span>
+                      )}
+                    </div>
+
+                    <Textarea
+                      value={activeOutput.content}
+                      onChange={e => handleContentEdit(e.target.value)}
+                      className="min-h-[300px] sm:min-h-[420px] font-sans text-sm text-stone-800 leading-relaxed resize-y rounded-xl border-stone-200 bg-stone-50/50 focus:ring-1 focus:ring-amber-200/60 focus:border-amber-300"
+                    />
+                  </div>
                 ) : (
                   <div className="flex items-center justify-center py-16">
                     <p className="font-sans text-stone-400 text-sm">Select a format on the left</p>
@@ -470,77 +513,27 @@ export default ProjectDetail;
 
           {/* ── Completed but no outputs yet (race condition) ── */}
           {project.status === "completed" && outputs.length === 0 && (
-            <div className="bg-white border border-stone-100 rounded-2xl shadow-sm  />
+            <div className="bg-white border border-stone-100 rounded-2xl shadow-sm">
+              <div className="flex items-center justify-center py-16">
+                <div className="text-center">
+                  <p className="font-sans text-stone-400 text-sm mb-3">No outputs found.</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 rounded-xl border-stone-200 font-sans"
+                    onClick={() => fetchData(false)}
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" /> Refresh
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
 
-                    <div className="flex items-center justify-between text-xs text-stone-400 font-sans">
-                      <span>{activeOutput.content.split(/\s+/).filter(Boolean).length} words</span>
-                      {charLimit && (
-                        <span className={charCount > charLimit ? "text-red-400 font-medium" : ""}>
-                          {charCount} / {charLimit} chars
-                        </span>
-                      )}
-                    </div>
-                  </div>lipboard</TooltipContent>
-                        </Tooltip>
-                      </div>
-                    </div>
+        </main>
+      </div>
+    </TooltipProvider>
+  );
+};
 
-                    <Textarea
-                      value={activeOutput.content}
-                      onChange={e => handleContentEdit(e.target.value)}
-                      className="min-h-[300px] sm:min-h-[420px] font-sans text-sm text-stone-800 leading-relaxed resize-y rounded-xl border-stone-200 bg-stone-50/50 focus:ring-1 focus:ring-amber-200/60 focus:border-amber-300"
-                  -200 text-stone-600 hover:bg-stone-50 font-sans"
-                              onClick={handleCopy}
-                            >
-                              {copied
-                                ? <Check className="h-3.5 w-3.5 text-emerald-500" />
-                                : <Copy className="h-3.5 w-3.5" />}
-                              {copied ? "Copied" : "Copy"}
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Copy to cassName="hidden sm:inline">Save</span>
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Save edits</TooltipContent>
-                          </Tooltip>
-                        )}
-
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="outline" size="sm"
-                              className="gap-1.5 rounded-xl border-stonet="outline" size="sm"
-                                className="gap-1.5 rounded-xl border-stone-200 text-stone-600 hover:bg-stone-50 font-sans"
-                                onClick={handleSave}
-                                disabled={saving}
-                              >
-                                {saving
-                                  ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                  : <Save className="h-3.5 w-3.5" />}
-                                <span clCw className="h-3.5 w-3.5" />}
-                              <span className="hidden sm:inline">Regenerate</span>
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Regenerate with same tone</TooltipContent>
-                        </Tooltip>
-
-                        {dirty && (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                varian         <Button
-                              variant="outline" size="sm"
-                              className="gap-1.5 rounded-xl border-stone-200 text-stone-600 hover:bg-stone-50 font-sans"
-                              onClick={() => handleRegenerate()}
-                              disabled={regenerating}
-                            >
-                              {regenerating
-                                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                : <Refresh                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent>Change tone and regenerate</TooltipContent>
-                        </Tooltip>
-
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                   
+export default ProjectDetail;
