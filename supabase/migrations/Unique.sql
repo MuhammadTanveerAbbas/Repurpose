@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS project_outputs_project_format_unique ON public.project_outputs (project_id, format_type);

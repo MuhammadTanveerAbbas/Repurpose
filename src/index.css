@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 30% 97%;
+    --foreground: 20 15% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 20 15% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 15% 12%;
+
+    /* Brand: amber-orange */
+    --primary: 25 85% 52%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 38 25% 94%;
+    --secondary-foreground: 20 15% 12%;
+
+    --muted: 38 20% 92%;
+    --muted-foreground: 30 10% 48%;
+
+    --accent: 32 95% 93%;
+    --accent-foreground: 25 85% 40%;
+
+    --destructive: 5 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 35 20% 87%;
+    --input: 35 20% 87%;
+    --ring: 25 85% 52%;
+
+    --radius: 0.75rem;
+
+    /* Sidebar warm tones */
+    --sidebar-background: 38 22% 93%;
+    --sidebar-foreground: 20 15% 25%;
+    --sidebar-primary: 25 85% 52%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 38 25% 88%;
+    --sidebar-accent-foreground: 20 15% 12%;
+    --sidebar-border: 35 20% 85%;
+    --sidebar-ring: 25 85% 52%;
+
+    /* Custom shadow tokens */
+    --shadow-card: 0 1px 3px 0 hsl(30 20% 0% / 0.05);
+    --shadow-card-hover: 0 4px 16px -2px hsl(30 20% 0% / 0.08);
+    --shadow-elevated: 0 8px 30px -4px hsl(30 20% 0% / 0.12);
+    --shadow-brand: 0 4px 14px rgba(232, 116, 58, 0.35);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  /* Hide scrollbar across all browsers while keeping scroll functionality */
+  * {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE / Edge */
+  }
+  *::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+
+  body {
+    background-color: #F8F5F0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    @apply text-foreground antialiased;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Lora', Georgia, serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Lora', Georgia, serif;
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+  .shadow-card-hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+  .shadow-elevated {
+    box-shadow: var(--shadow-elevated);
+  }
+  .shadow-brand {
+    box-shadow: var(--shadow-brand);
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+}
