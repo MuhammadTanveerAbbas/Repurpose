@@ -1,10 +1,55 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ChevronRight, ChevronDown, Check, X as XIcon, AlertTriangle, Play } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { Navbar } from "@/components/Navbar";
 import { FadeUp } from "@/components/FadeUp";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import {
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, RadialBarChart, RadialBar, Cell,
+} from "recharts";
+
+// --- Chart data ---
+const contentGrowthData = [
+  { month: "Jan", posts: 4 },
+  { month: "Feb", posts: 9 },
+  { month: "Mar", posts: 14 },
+  { month: "Apr", posts: 22 },
+  { month: "May", posts: 31 },
+  { month: "Jun", posts: 47 },
+  { month: "Jul", posts: 63 },
+];
+
+const formatBreakdownData = [
+  { name: "LinkedIn", value: 34, color: "#E8743A" },
+  { name: "Twitter", value: 26, color: "#D4632A" },
+  { name: "Newsletter", value: 18, color: "#F59E0B" },
+  { name: "YouTube Desc", value: 12, color: "#FBBF24" },
+  { name: "Short-form", value: 10, color: "#FCD34D" },
+];
+
+const timeSavedData = [
+  { label: "Manual writing", hours: 8, fill: "#D1C4B0" },
+  { label: "With Repurpose AI", hours: 1.5, fill: "#E8743A" },
+];
+
+// Animated counter hook
+function useCountUp(target: number, duration = 1500, start = false) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (!start) return;
+    let startTime: number | null = null;
+    const step = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      setCount(Math.floor(progress * target));
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }, [target, duration, start]);
+  return count;
+}
 
 const faqs = [
   {
@@ -46,6 +91,17 @@ const comparisonFeatures = [
 
 const Index = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  // Stats section animation trigger
+  const statsRef = useRef<HTMLDivElement>(null);
+  const statsInView = useInView(statsRef, { once: true, margin: "-80px" });
+  const postsCount = useCountUp(63, 1400, statsInView);
+  const hoursCount = useCountUp(6, 1200, statsInView);
+  const formatsCount = useCountUp(6, 1000, statsInView);
+
+  // Chart section animation trigger
+  const chartRef = useRef<HTMLDivElement>(null);
+  const chartInView = useInView(chartRef, { once: true, margin: "-80px" });
 
   return (
     <div className="min-h-screen bg-[#F8F5F0]">
@@ -152,6 +208,89 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Section 1: Stats + Content Growth Chart */}
+      <section className="bg-[#F8F5F0] border-t border-stone-200" ref={statsRef}>
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 py-14 sm:py-20">
+          <FadeUp>
+            <p className="font-sans text-xs font-semibold tracking-[0.15em] text-amber-600 uppercase mb-3">By the numbers</p>
+            <h2 className="font-display text-3xl text-stone-900 mb-3">Content output, compounded</h2>
+            <p className="font-sans text-sm text-stone-500 mb-12 max-w-lg leading-relaxed">
+              One transcript a week turns into a growing library of platform-ready drafts. Here's what that looks like over time.
+            </p>
+          </FadeUp>
+
+          {/* Animated stat cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
+            {[
+              { value: postsCount, suffix: "+", label: "Drafts from 1 transcript/week", sub: "after 7 months" },
+              { value: hoursCount, suffix: "h", label: "Saved per transcript", sub: "vs. writing manually" },
+              { value: formatsCount, suffix: "", label: "Output formats", sub: "per project" },
+            ].map((stat, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                animate={statsInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.5, delay: i * 0.12 }}
+                className="rounded-2xl bg-white border border-stone-100 p-5 shadow-sm text-center"
+              >
+                <p className="font-display text-3xl sm:text-4xl font-semibold text-[#E8743A] tabular-nums">
+                  {stat.value}{stat.suffix}
+                </p>
+                <p className="font-sans text-sm font-semibold text-stone-800 mt-1">{stat.label}</p>
+                <p className="font-sans text-xs text-stone-400 mt-0.5">{stat.sub}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Area chart */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={statsInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="rounded-2xl bg-white border border-stone-100 p-6 shadow-sm"
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
+              <div>
+                <p className="font-sans text-sm font-semibold text-stone-800">Cumulative content drafts</p>
+                <p className="font-sans text-xs text-stone-400">1 transcript/week × 6 formats</p>
+              </div>
+              <span className="text-xs font-medium px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-sans self-start sm:self-auto">7-month projection</span>
+            </div>
+            <ResponsiveContainer width="100%" height={220}>
+              <AreaChart data={contentGrowthData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#E8743A" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#E8743A" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#F0EBE3" vertical={false} />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#A8A29E", fontFamily: "Plus Jakarta Sans" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: "#A8A29E", fontFamily: "Plus Jakarta Sans" }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  contentStyle={{ background: "#fff", border: "1px solid #E7E0D8", borderRadius: 12, fontSize: 12, fontFamily: "Plus Jakarta Sans" }}
+                  labelStyle={{ color: "#57534E", fontWeight: 600 }}
+                  itemStyle={{ color: "#E8743A" }}
+                  formatter={(v: number) => [`${v} drafts`, "Total"]}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="posts"
+                  stroke="#E8743A"
+                  strokeWidth={2.5}
+                  fill="url(#areaGrad)"
+                  dot={{ r: 4, fill: "#E8743A", strokeWidth: 0 }}
+                  activeDot={{ r: 6, fill: "#E8743A", strokeWidth: 0 }}
+                  isAnimationActive={statsInView}
+                  animationDuration={1200}
+                  animationEasing="ease-out"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Real Talk */}
       <section className="bg-[#F8F5F0] border-t border-stone-200">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 py-20">
@@ -246,6 +385,103 @@ const Index = () => {
                 </FadeUp>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Section 2: Time saved + Format breakdown charts */}
+      <section className="bg-[#F8F5F0] border-t border-stone-200" ref={chartRef}>
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 py-14 sm:py-20">
+          <FadeUp>
+            <p className="font-sans text-xs font-semibold tracking-[0.15em] text-amber-600 uppercase mb-3">Why it matters</p>
+            <h2 className="font-display text-3xl text-stone-900 mb-3">Time saved. Formats covered.</h2>
+            <p className="font-sans text-sm text-stone-500 mb-12 max-w-lg leading-relaxed">
+              Writing one piece of content manually takes hours. Repurpose AI cuts that down to minutes, across every platform.
+            </p>
+          </FadeUp>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Bar chart: time comparison */}
+            <motion.div
+              initial={{ opacity: 0, x: -24 }}
+              animate={chartInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="rounded-2xl bg-white border border-stone-100 p-6 shadow-sm"
+            >
+              <p className="font-sans text-sm font-semibold text-stone-800 mb-1">Hours per transcript</p>
+              <p className="font-sans text-xs text-stone-400 mb-6">Manual writing vs. AI-assisted</p>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={timeSavedData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }} barSize={40}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F0EBE3" vertical={false} />
+                  <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#A8A29E", fontFamily: "Plus Jakarta Sans" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: "#A8A29E", fontFamily: "Plus Jakarta Sans" }} axisLine={false} tickLine={false} unit="h" />
+                  <Tooltip
+                    contentStyle={{ background: "#fff", border: "1px solid #E7E0D8", borderRadius: 12, fontSize: 12, fontFamily: "Plus Jakarta Sans" }}
+                    labelStyle={{ color: "#57534E", fontWeight: 600 }}
+                    formatter={(v: number) => [`${v}h`, "Time"]}
+                    cursor={{ fill: "rgba(232,116,58,0.05)" }}
+                  />
+                  <Bar dataKey="hours" radius={[8, 8, 0, 0]} isAnimationActive={chartInView} animationDuration={1000} animationEasing="ease-out">
+                    {timeSavedData.map((entry, i) => (
+                      <Cell key={i} fill={entry.fill} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+              <div className="mt-4 flex items-center gap-2 rounded-xl bg-amber-50 border border-amber-100 px-4 py-2.5">
+                <span className="font-sans text-xs text-amber-700 font-medium">~6.5h saved per transcript on average</span>
+              </div>
+            </motion.div>
+
+            {/* Radial bar chart: format distribution */}
+            <motion.div
+              initial={{ opacity: 0, x: 24 }}
+              animate={chartInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="rounded-2xl bg-white border border-stone-100 p-6 shadow-sm"
+            >
+              <p className="font-sans text-sm font-semibold text-stone-800 mb-1">Most-used output formats</p>
+              <p className="font-sans text-xs text-stone-400 mb-4">% of total drafts generated</p>
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <div className="w-full sm:w-auto flex justify-center">
+                  <ResponsiveContainer width={160} height={160}>
+                    <RadialBarChart
+                      cx="50%" cy="50%"
+                      innerRadius={28} outerRadius={72}
+                      data={formatBreakdownData}
+                      startAngle={90} endAngle={-270}
+                    >
+                      <RadialBar
+                        dataKey="value"
+                        cornerRadius={4}
+                        isAnimationActive={chartInView}
+                        animationDuration={1200}
+                        animationEasing="ease-out"
+                      >
+                        {formatBreakdownData.map((entry, i) => (
+                          <Cell key={i} fill={entry.color} />
+                        ))}
+                      </RadialBar>
+                      <Tooltip
+                        contentStyle={{ background: "#fff", border: "1px solid #E7E0D8", borderRadius: 12, fontSize: 12, fontFamily: "Plus Jakarta Sans" }}
+                        formatter={(v: number) => [`${v}%`, "Share"]}
+                      />
+                    </RadialBarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex flex-col gap-2 w-full sm:flex-1">
+                  {formatBreakdownData.map((item) => (
+                    <div key={item.name} className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: item.color }} />
+                        <span className="font-sans text-xs text-stone-600">{item.name}</span>
+                      </div>
+                      <span className="font-sans text-xs font-semibold text-stone-700 tabular-nums">{item.value}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -353,18 +589,10 @@ const Index = () => {
               </ul>
             </div>
             <div>
-              <h4 className="font-sans text-sm font-semibold text-stone-700 mb-4">Built by</h4>
+              <h4 className="font-sans text-sm font-semibold text-stone-700 mb-4">Account</h4>
               <ul className="space-y-2.5">
-                <li>
-                  <a
-                    href="https://themvpguy.vercel.app/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-sans text-sm text-stone-500 hover:text-stone-800 transition-colors"
-                  >
-                    Muhammad Tanveer Abbas
-                  </a>
-                </li>
+                <li><Link to="/login" className="font-sans text-sm text-stone-500 hover:text-stone-800 transition-colors">Login</Link></li>
+                <li><Link to="/signup" className="font-sans text-sm text-stone-500 hover:text-stone-800 transition-colors">Sign Up</Link></li>
               </ul>
             </div>
             <div>
