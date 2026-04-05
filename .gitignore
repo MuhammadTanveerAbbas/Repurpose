@@ -40,6 +40,9 @@ lerna-debug.log*
 .DS_Store
 Thumbs.db
 
+# Vercel
+.vercel
+
 # Supabase local dev
 supabase/.branches
 supabase/.temp

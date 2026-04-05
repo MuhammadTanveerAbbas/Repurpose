@@ -9,13 +9,13 @@ function FullScreenLoader() {
   )
 }
 
-export const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
+export function PublicRoute() {
   const { session, loading } = useAuth()
 
   if (loading) return <FullScreenLoader />
 
-  if (!session) return <Navigate to="/login" replace />
+  // Already logged in → skip landing/auth, go straight to dashboard
+  if (session) return <Navigate to="/dashboard" replace />
 
-  // Support both Outlet (layout route) and children (wrapper) usage
-  return children ? <>{children}</> : <Outlet />
+  return <Outlet />
 }

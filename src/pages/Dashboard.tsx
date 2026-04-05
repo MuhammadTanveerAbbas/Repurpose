@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -20,22 +20,21 @@ type Project = {
 const Dashboard = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!user) return;
-    const fetchProjects = async () => {
-      const { data } = await supabase
+  const { data: projects = [], isLoading: loading, isError } = useQuery({
+    queryKey: ['projects', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
         .from("projects")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-      setProjects((data as Project[]) ?? []);
-      setLoading(false);
-    };
-    fetchProjects();
-  }, [user]);
+        .select("id, title, created_at, source_type, output_count")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return (data as Project[]) ?? [];
+    },
+    enabled: !!user,
+  });
 
   const planLimits: Record<string, number> = { free: 3, creator: 999, pro: 999 };
   const limit = planLimits[profile?.plan ?? "free"] ?? 3;
@@ -47,6 +46,12 @@ const Dashboard = () => {
     <div className="min-h-screen bg-[#F8F5F0]">
       <Navbar />
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+
+        {isError && (
+          <div className="text-center py-10 text-muted-foreground">
+            <p>Something went wrong loading your projects. Please refresh.</p>
+          </div>
+        )}
 
         {/* Header */}
         <FadeUp>

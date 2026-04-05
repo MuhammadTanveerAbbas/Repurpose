@@ -1,171 +1,244 @@
+<div align="center">
+
+  <img src="public/favicon.svg" alt="Repurpose AI Logo" width="80" height="80" />
+
 # Repurpose AI
 
-> Transform one video into six platform-ready content pieces automatically with AI-powered content repurposing.
+**Transform one video transcript into six platform-ready content drafts — automatically.**
 
-![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?logo=tailwindcss&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)
-![Supabase](https://img.shields.io/badge/Supabase-Backend-3ECF8E?logo=supabase&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen?style=for-the-badge)](https://repurpose-ai.vercel.app)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org)
+[![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
+[![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
 
-Repurpose AI is a powerful content repurposing platform that helps content creators, marketers, and businesses maximize their content ROI by automatically transforming video transcripts into multiple platform-optimized formats.
-
----
-
-## Features
-
-### Content Input
-- **YouTube Transcript Extraction** - Paste any YouTube URL and automatically extract the full transcript
-- **Manual Transcript Input** - Import transcripts from podcasts, interviews, webinars, or any video source
-
-### AI-Powered Content Generation
-Transform your transcripts into six platform-optimized formats:
-- **LinkedIn Long-Form Post** - Professional articles (1,200–1,500 words)
-- **LinkedIn Hook Post** - Attention-grabbing posts (under 700 characters)
-- **Twitter/X Thread** - Engaging threads (7 tweets, each under 280 characters)
-- **Email Newsletter Section** - Ready-to-send newsletter content
-- **YouTube Description** - SEO-optimized descriptions with timestamps and tags
-- **Short-Form Video Scripts** - Three 60-second scripts for TikTok/Reels/Shorts
-
-### Platform Features
-- **Tone Control** - Choose between professional, casual, or punchy writing styles
-- **Project Dashboard** - Manage and revisit all your repurposing projects
-- **Usage Tracking** - Monitor your monthly project limits based on your plan
-- **Authentication** - Secure login with email/password and Google OAuth
-- **Dark Mode UI** - Beautiful dark-mode-first interface for comfortable viewing
+</div>
 
 ---
 
-## Getting Started
+<div align="center">
+  <img src="public/Repurpose AI.png" alt="Repurpose AI" width="100%" />
+</div>
 
-### 1. Clone
+---
+
+## Overview
+
+Repurpose AI solves the blank-page problem for content creators. Paste a YouTube URL or your own transcript and get a LinkedIn post, Twitter thread, email newsletter section, YouTube description, and short-form video scripts — all as editable first drafts in under 90 seconds.
+
+It's built for solo creators, marketers, and educators who publish consistently across platforms but don't have time to manually rewrite the same content six different ways. Unlike generic AI writing tools, every output format has platform-specific prompts baked in — character limits, structure, and conventions are handled for you.
+
+---
+
+## ✨ Features
+
+- 🎬 **YouTube Transcript Extraction** — Paste a YouTube URL and captions are pulled automatically. No manual copy-paste needed.
+- 📝 **Six Platform-Specific Output Formats** — LinkedIn long-form, LinkedIn hook, Twitter/X thread, email newsletter, YouTube description, and short-form video scripts.
+- 🎨 **Tone Control** — Switch between Professional, Casual, and Punchy tones and regenerate instantly.
+- ✏️ **Built-in Content Editor** — Edit any output directly in the app, save changes, and track character counts per platform.
+- 📥 **Multi-format Export** — Download all outputs as `.txt` or `.md` files, or copy to clipboard with one click.
+- 🔄 **Regeneration** — Not happy with a draft? Regenerate any format individually without touching the others.
+- 📋 **Paste Transcript Fallback** — If YouTube captions aren't available, paste the transcript manually and continue.
+- 📊 **Usage Dashboard** — Track projects created, total content pieces generated, and free plan usage at a glance.
+- 🗂️ **Content Templates** — Pre-built prompt styles for B2B SaaS, Personal Finance, Fitness, Marketing, and Dev Education niches.
+- 🔒 **Auth + Protected Routes** — Supabase Auth with email/password, protected dashboard, and per-user data isolation via RLS.
+- 💳 **Tiered Pricing** — Free (3 projects/mo), Creator ($49/mo), and Pro ($99/mo) plans with feature gating.
+- ⚙️ **User Settings** — Update profile name, change password, and manage account from a dedicated settings page.
+
+---
+
+## 🛠 Tech Stack
+
+| Category       | Technology                                   |
+| -------------- | -------------------------------------------- |
+| Frontend       | React 18 + TypeScript + Vite                 |
+| Styling        | Tailwind CSS v3 + shadcn/ui + Framer Motion  |
+| Backend        | Supabase (Auth + PostgreSQL + RLS + Storage) |
+| Edge Functions | Supabase Edge Functions (Deno)               |
+| AI             | Groq API — Llama 3.3 70B Versatile           |
+| Forms          | React Hook Form + Zod                        |
+| Data Fetching  | TanStack React Query v5                      |
+| Charts         | Recharts                                     |
+| Deployment     | Vercel                                       |
+
+---
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18+
+- pnpm 8+ (`npm install -g pnpm`)
+- Supabase account — [supabase.com](https://supabase.com)
+- Groq API key — [console.groq.com](https://console.groq.com)
+
+### Installation
 
 ```bash
+# 1. Clone the repo
 git clone https://github.com/MuhammadTanveerAbbas/Repurpose.git
 cd Repurpose
-```
 
-### 2. Install Dependencies
-
-This project uses `pnpm` as the package manager:
-
-```bash
+# 2. Install dependencies
 pnpm install
-```
 
-If you don't have pnpm installed:
-```bash
-npm install -g pnpm
-```
-
-### 3. Environment Setup
-
-Copy the example environment file and configure your variables:
-
-```bash
+# 3. Set up environment variables
 cp .env.example .env.local
+# Fill in your values (see Environment Variables section below)
+
+# 4. Run the development server
+pnpm dev
+
+# 5. Open in browser
+http://localhost:8080
 ```
 
-Fill in the required values in `.env.local` - see the Environment Variables section below for details.
+### Supabase Setup
 
-### 4. Run Development Server
+1. Create a new Supabase project
+2. Run the migration files in `supabase/migrations/` via the SQL editor
+3. Deploy the edge functions:
 
 ```bash
-pnpm dev
+supabase functions deploy fetch-transcript
+supabase functions deploy generate-content
+supabase functions deploy process-project
 ```
 
-The app will be available at `http://localhost:8080`.
+4. Set edge function secrets in the Supabase dashboard under **Edge Functions → Secrets**:
+   - `AI_API_KEY` — your Groq API key
+   - `SUPABASE_SERVICE_ROLE_KEY` — your Supabase service role key
 
 ---
 
-## Environment Variables
+## 🔐 Environment Variables
 
-| Variable | Required | Description |
-|---|---|---|
-| `VITE_SUPABASE_URL` | Yes | Supabase project URL |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | Yes | Supabase anon/public key |
-| `VITE_SUPABASE_PROJECT_ID` | Yes | Supabase project reference ID |
-| `AI_API_KEY` | Edge function | Groq API key (set in Supabase secrets) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Edge function | Service role key (set in Supabase secrets, never client-side) |
+Create a `.env.local` file in the root directory:
 
-> Edge function secrets are set in the Supabase Dashboard under **Edge Functions → Manage secrets**, not in `.env`.
+```env
+# Supabase
+VITE_SUPABASE_URL=https://your-project-id.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=your-supabase-anon-key
+VITE_SUPABASE_PROJECT_ID=your-project-id
+```
+
+> The AI key (`AI_API_KEY`) and service role key (`SUPABASE_SERVICE_ROLE_KEY`) are **server-side only** — set them as Supabase Edge Function secrets, never in `.env.local`.
+
+Get your keys:
+
+- Supabase: [supabase.com](https://supabase.com) → Project Settings → API
+- Groq: [console.groq.com](https://console.groq.com)
 
 ---
 
-## Tech Stack
-
-- **Frontend**: React 18 + TypeScript
-- **Build Tool**: Vite 5
-- **Styling**: Tailwind CSS + shadcn/ui components
-- **Backend**: Supabase (PostgreSQL + Edge Functions)
-- **AI**: Groq API for content generation
-- **Authentication**: Supabase Auth (Email + Google OAuth)
-- **State Management**: React Context + TanStack Query
-- **Routing**: React Router v6
-
-## Folder Structure
+## 📁 Project Structure
 
 ```
 Repurpose/
+├── public/                  # Static assets
 ├── src/
-│   ├── components/       # Shared UI components (Navbar, ProtectedRoute, etc.)
-│   │   └── ui/          # shadcn/ui component library
-│   ├── contexts/         # React context providers (AuthContext)
-│   ├── hooks/            # Custom React hooks
-│   ├── integrations/     # Supabase client and auth helpers
-│   ├── lib/              # Utility functions
-│   └── pages/            # Route-level page components
+│   ├── components/          # Reusable UI components
+│   │   └── ui/              # shadcn/ui component library
+│   ├── contexts/            # React context (AuthContext)
+│   ├── hooks/               # Custom React hooks
+│   ├── integrations/        # Supabase client + generated types
+│   ├── lib/                 # Utility functions
+│   ├── pages/               # Page components / routes
+│   └── main.tsx             # App entry point
 ├── supabase/
-│   ├── functions/        # Deno edge functions (AI generation, transcript fetching)
-│   └── migrations/       # SQL migration files
-├── public/               # Static assets
-└── .env.example          # Environment variable template
-```
-
-## Available Scripts
-
-```bash
-pnpm dev          # Start development server
-pnpm build        # Build for production
-pnpm preview      # Preview production build
-pnpm lint         # Run ESLint
-pnpm test         # Run tests once
-pnpm test:watch   # Run tests in watch mode
+│   ├── functions/           # Deno edge functions
+│   │   ├── fetch-transcript/
+│   │   ├── generate-content/
+│   │   └── process-project/
+│   └── migrations/          # SQL schema migrations
+├── .env.example             # Environment variables template
+├── package.json
+└── README.md
 ```
 
 ---
 
-## Contributing
+## 📦 Available Scripts
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+| Command           | Description                           |
+| ----------------- | ------------------------------------- |
+| `pnpm dev`        | Start development server on port 8080 |
+| `pnpm build`      | Build for production                  |
+| `pnpm preview`    | Preview production build              |
+| `pnpm lint`       | Run ESLint                            |
+| `pnpm lint:fix`   | Run ESLint with auto-fix              |
+| `pnpm test`       | Run tests (single run)                |
+| `pnpm test:watch` | Run tests in watch mode               |
+| `pnpm type-check` | TypeScript type checking              |
+
+---
+
+## 🌐 Deployment
+
+This project is deployed on **Vercel**.
+
+### Deploy Your Own
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/MuhammadTanveerAbbas/Repurpose)
+
+1. Click the button above
+2. Connect your GitHub account
+3. Add environment variables in the Vercel dashboard (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_PROJECT_ID`)
+4. Deploy
+
+---
+
+## 🗺 Roadmap
+
+- [x] YouTube transcript extraction via captions API
+- [x] Six platform-specific output formats
+- [x] Tone control (Professional, Casual, Punchy)
+- [x] Built-in content editor with save + regenerate
+- [x] TXT and Markdown export
+- [x] Content templates by niche
+- [x] Free / Creator / Pro plan structure
+- [ ] Audio/video file transcription (MP3/MP4 upload)
+- [ ] Custom tone instructions per project
+- [ ] Team collaboration (up to 5 members on Pro)
+- [ ] Notion and Google Docs export
+- [ ] API access
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Feel free to:
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
 ---
 
-## Author
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+## 👨‍💻 Built by The MVP Guy
+
+<div align="center">
 
 **Muhammad Tanveer Abbas**
+SaaS Developer | Building production-ready MVPs in 14–21 days
 
-- Website: [themvpguy.vercel.app](https://themvpguy.vercel.app/)
-- GitHub: [@MuhammadTanveerAbbas](https://github.com/MuhammadTanveerAbbas)
+[![Portfolio](https://img.shields.io/badge/Portfolio-themvpguy.vercel.app-black?style=for-the-badge)](https://themvpguy.vercel.app)
+[![Twitter](https://img.shields.io/badge/Twitter-@themvpguy-1DA1F2?style=for-the-badge&logo=twitter)](https://x.com/themvpguy)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=for-the-badge&logo=linkedin)](https://linkedin.com/in/muhammadtanveerabbas)
+[![GitHub](https://img.shields.io/badge/GitHub-Follow-181717?style=for-the-badge&logo=github)](https://github.com/MuhammadTanveerAbbas)
 
----
+_If this project helped you, please consider giving it a ⭐_
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
-
----
-
-## Acknowledgments
-
-- Built with [Vite](https://vitejs.dev/)
-- UI components from [shadcn/ui](https://ui.shadcn.com/)
-- Backend powered by [Supabase](https://supabase.com/)
-- AI generation via [Groq](https://groq.com/)
+</div>

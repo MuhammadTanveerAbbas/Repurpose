@@ -58,6 +58,18 @@
     @apply border-border;
   }
 
+  /* Prevent horizontal overflow on all screens */
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  /* Responsive images and media */
+  img, video, svg {
+    max-width: 100%;
+    height: auto;
+  }
+
   /* Hide scrollbar across all browsers while keeping scroll functionality */
   * {
     scrollbar-width: none; /* Firefox */
