@@ -13,3 +13,11 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storageKey: 'repurpose-auth',
   },
 });
+
+// Clear stale session if token refresh fails so the app doesn't hang on reload
+supabase.auth.onAuthStateChange((event) => {
+  if (event === 'TOKEN_REFRESHED') return;
+  if (event === 'SIGNED_OUT') {
+    localStorage.removeItem('repurpose-auth');
+  }
+});

@@ -52,15 +52,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    // Get existing session first, then subscribe to changes
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id);
+    let settled = false;
+
+    // Safety timeout — if Supabase hangs (e.g. bad refresh token), unblock the UI
+    const timeout = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        setLoading(false);
       }
-      setLoading(false);
-    });
+    }, 3000);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
@@ -71,11 +71,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } else {
           setProfile(null);
         }
+        if (!settled) {
+          settled = true;
+          clearTimeout(timeout);
+        }
         setLoading(false);
       }
     );
 
-    return () => subscription.unsubscribe();
+    // Trigger session resolution
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!settled) {
+        settled = true;
+        clearTimeout(timeout);
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user) fetchProfile(session.user.id);
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
