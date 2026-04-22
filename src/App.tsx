@@ -32,10 +32,12 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <BrowserRouter
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
         <AuthProvider>
           <Routes>
-            {/* Public routes — redirect to /dashboard if already logged in */}
+            {/* Public routes redirect to /dashboard if already logged in */}
             <Route element={<PublicRoute />}>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
@@ -45,7 +47,7 @@ const App = () => (
             {/* Pricing is always public */}
             <Route path="/pricing" element={<Pricing />} />
 
-            {/* Protected routes — redirect to /login if not logged in */}
+            {/* Protected routes redirect to /login if not logged in */}
             <Route element={<ProtectedRoute />}>
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/dashboard" element={<Dashboard />} />

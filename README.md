@@ -4,7 +4,7 @@
 
 # Repurpose AI
 
-**Transform one video transcript into six platform-ready content drafts — automatically.**
+**Transform one video transcript into six platform-ready content drafts automatically.**
 
 [![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen?style=for-the-badge)](https://repurpose-ai.vercel.app)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
@@ -26,26 +26,26 @@
 
 ## Overview
 
-Repurpose AI solves the blank-page problem for content creators. Paste a YouTube URL or your own transcript and get a LinkedIn post, Twitter thread, email newsletter section, YouTube description, and short-form video scripts — all as editable first drafts in under 90 seconds.
+Repurpose AI solves the blank-page problem for content creators. Paste a YouTube URL or your own transcript and get a LinkedIn post, Twitter thread, email newsletter section, YouTube description, and short-form video scripts all as editable first drafts in under 90 seconds.
 
-It's built for solo creators, marketers, and educators who publish consistently across platforms but don't have time to manually rewrite the same content six different ways. Unlike generic AI writing tools, every output format has platform-specific prompts baked in — character limits, structure, and conventions are handled for you.
+It's built for solo creators, marketers, and educators who publish consistently across platforms but don't have time to manually rewrite the same content six different ways. Unlike generic AI writing tools, every output format has platform-specific prompts baked in character limits, structure, and conventions are handled for you.
 
 ---
 
 ## ✨ Features
 
-- 🎬 **YouTube Transcript Extraction** — Paste a YouTube URL and captions are pulled automatically. No manual copy-paste needed.
-- 📝 **Six Platform-Specific Output Formats** — LinkedIn long-form, LinkedIn hook, Twitter/X thread, email newsletter, YouTube description, and short-form video scripts.
-- 🎨 **Tone Control** — Switch between Professional, Casual, and Punchy tones and regenerate instantly.
-- ✏️ **Built-in Content Editor** — Edit any output directly in the app, save changes, and track character counts per platform.
-- 📥 **Multi-format Export** — Download all outputs as `.txt` or `.md` files, or copy to clipboard with one click.
-- 🔄 **Regeneration** — Not happy with a draft? Regenerate any format individually without touching the others.
-- 📋 **Paste Transcript Fallback** — If YouTube captions aren't available, paste the transcript manually and continue.
-- 📊 **Usage Dashboard** — Track projects created, total content pieces generated, and free plan usage at a glance.
-- 🗂️ **Content Templates** — Pre-built prompt styles for B2B SaaS, Personal Finance, Fitness, Marketing, and Dev Education niches.
-- 🔒 **Auth + Protected Routes** — Supabase Auth with email/password, protected dashboard, and per-user data isolation via RLS.
-- 💳 **Tiered Pricing** — Free (3 projects/mo), Creator ($49/mo), and Pro ($99/mo) plans with feature gating.
-- ⚙️ **User Settings** — Update profile name, change password, and manage account from a dedicated settings page.
+- 🎬 **YouTube Transcript Extraction** Paste a YouTube URL and captions are pulled automatically. No manual copy-paste needed.
+- 📝 **Six Platform-Specific Output Formats** LinkedIn long-form, LinkedIn hook, Twitter/X thread, email newsletter, YouTube description, and short-form video scripts.
+- 🎨 **Tone Control** Switch between Professional, Casual, and Punchy tones and regenerate instantly.
+- ✏️ **Built-in Content Editor** Edit any output directly in the app, save changes, and track character counts per platform.
+- 📥 **Multi-format Export** Download all outputs as `.txt` or `.md` files, or copy to clipboard with one click.
+- 🔄 **Regeneration** Not happy with a draft? Regenerate any format individually without touching the others.
+- 📋 **Paste Transcript Fallback** If YouTube captions aren't available, paste the transcript manually and continue.
+- 📊 **Usage Dashboard** Track projects created, total content pieces generated, and free plan usage at a glance.
+- 🗂️ **Content Templates** Pre-built prompt styles for B2B SaaS, Personal Finance, Fitness, Marketing, and Dev Education niches.
+- 🔒 **Auth + Protected Routes** Supabase Auth with email/password, protected dashboard, and per-user data isolation via RLS.
+- 💳 **Tiered Pricing** Free (3 projects/mo), Creator ($49/mo), and Pro ($99/mo) plans with feature gating.
+- ⚙️ **User Settings** Update profile name, change password, and manage account from a dedicated settings page.
 
 ---
 
@@ -57,7 +57,7 @@ It's built for solo creators, marketers, and educators who publish consistently 
 | Styling        | Tailwind CSS v3 + shadcn/ui + Framer Motion  |
 | Backend        | Supabase (Auth + PostgreSQL + RLS + Storage) |
 | Edge Functions | Supabase Edge Functions (Deno)               |
-| AI             | Groq API — Llama 3.3 70B Versatile           |
+| AI             | Groq API Llama 3.3 70B Versatile             |
 | Forms          | React Hook Form + Zod                        |
 | Data Fetching  | TanStack React Query v5                      |
 | Charts         | Recharts                                     |
@@ -73,8 +73,8 @@ It's built for solo creators, marketers, and educators who publish consistently 
 
 - Node.js 18+
 - pnpm 8+ (`npm install -g pnpm`)
-- Supabase account — [supabase.com](https://supabase.com)
-- Groq API key — [console.groq.com](https://console.groq.com)
+- Supabase account [supabase.com](https://supabase.com)
+- Groq API key [console.groq.com](https://console.groq.com)
 
 ### Installation
 
@@ -110,8 +110,8 @@ supabase functions deploy process-project
 ```
 
 4. Set edge function secrets in the Supabase dashboard under **Edge Functions → Secrets**:
-   - `AI_API_KEY` — your Groq API key
-   - `SUPABASE_SERVICE_ROLE_KEY` — your Supabase service role key
+   - `AI_API_KEY` your Groq API key
+   - `SUPABASE_SERVICE_ROLE_KEY` your Supabase service role key
 
 ---
 
@@ -126,7 +126,7 @@ VITE_SUPABASE_PUBLISHABLE_KEY=your-supabase-anon-key
 VITE_SUPABASE_PROJECT_ID=your-project-id
 ```
 
-> The AI key (`AI_API_KEY`) and service role key (`SUPABASE_SERVICE_ROLE_KEY`) are **server-side only** — set them as Supabase Edge Function secrets, never in `.env.local`.
+> The AI key (`AI_API_KEY`) and service role key (`SUPABASE_SERVICE_ROLE_KEY`) are **server-side only** set them as Supabase Edge Function secrets, never in `.env.local`.
 
 Get your keys:
 

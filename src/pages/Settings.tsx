@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/use-auth";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,28 +53,56 @@ const Settings = () => {
     <div className="min-h-screen bg-[#F8F5F0]">
       <Navbar />
       <main className="mx-auto max-w-xl px-4 py-8 sm:px-6">
-        <h1 className="font-display text-2xl sm:text-3xl text-stone-900 mb-8">Settings</h1>
+        <h1 className="font-display text-2xl sm:text-3xl text-stone-900 mb-8">
+          Settings
+        </h1>
 
         {/* Profile section */}
         <section className="mb-10">
-          <h2 className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-400 mb-4">Profile</h2>
+          <h2 className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-400 mb-4">
+            Profile
+          </h2>
           <div className="bg-white border border-stone-100 rounded-2xl p-6 shadow-sm space-y-4">
             <div className="space-y-1.5">
-              <Label className="font-sans text-sm font-medium text-stone-700">Full Name</Label>
-              <Input value={fullName} onChange={e => setFullName(e.target.value)} className="h-10 rounded-xl border-stone-200 bg-white text-stone-900 placeholder:text-stone-400 focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 font-sans" />
+              <Label className="font-sans text-sm font-medium text-stone-700">
+                Full Name
+              </Label>
+              <Input
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="h-10 rounded-xl border-stone-200 bg-white text-stone-900 placeholder:text-stone-400 focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 font-sans"
+              />
             </div>
             <div className="space-y-1.5">
-              <Label className="font-sans text-sm font-medium text-stone-700">Email</Label>
-              <Input value={user?.email ?? ""} disabled className="h-10 rounded-xl border-stone-200 bg-stone-50 text-stone-400 font-sans" />
+              <Label className="font-sans text-sm font-medium text-stone-700">
+                Email
+              </Label>
+              <Input
+                value={user?.email ?? ""}
+                disabled
+                className="h-10 rounded-xl border-stone-200 bg-stone-50 text-stone-400 font-sans"
+              />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="font-sans text-sm font-medium text-stone-700">Content Type</Label>
-                <Input value={profile?.content_type?.replace(/_/g, " ") ?? "Not set"} disabled className="h-10 rounded-xl border-stone-200 bg-stone-50 text-stone-400 capitalize font-sans" />
+                <Label className="font-sans text-sm font-medium text-stone-700">
+                  Content Type
+                </Label>
+                <Input
+                  value={profile?.content_type?.replace(/_/g, " ") ?? "Not set"}
+                  disabled
+                  className="h-10 rounded-xl border-stone-200 bg-stone-50 text-stone-400 capitalize font-sans"
+                />
               </div>
               <div className="space-y-1.5">
-                <Label className="font-sans text-sm font-medium text-stone-700">Output Goal</Label>
-                <Input value={profile?.output_goal?.replace(/_/g, " ") ?? "Not set"} disabled className="h-10 rounded-xl border-stone-200 bg-stone-50 text-stone-400 capitalize font-sans" />
+                <Label className="font-sans text-sm font-medium text-stone-700">
+                  Output Goal
+                </Label>
+                <Input
+                  value={profile?.output_goal?.replace(/_/g, " ") ?? "Not set"}
+                  disabled
+                  className="h-10 rounded-xl border-stone-200 bg-stone-50 text-stone-400 capitalize font-sans"
+                />
               </div>
             </div>
             <Button
@@ -92,11 +120,21 @@ const Settings = () => {
 
         {/* Password section */}
         <section className="mb-10">
-          <h2 className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-400 mb-4">Password</h2>
+          <h2 className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-400 mb-4">
+            Password
+          </h2>
           <div className="bg-white border border-stone-100 rounded-2xl p-6 shadow-sm space-y-4">
             <div className="space-y-1.5">
-              <Label className="font-sans text-sm font-medium text-stone-700">New Password</Label>
-              <Input type="password" placeholder="Min 6 characters" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="h-10 rounded-xl border-stone-200 bg-white text-stone-900 placeholder:text-stone-400 focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 font-sans" />
+              <Label className="font-sans text-sm font-medium text-stone-700">
+                New Password
+              </Label>
+              <Input
+                type="password"
+                placeholder="Min 6 characters"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="h-10 rounded-xl border-stone-200 bg-white text-stone-900 placeholder:text-stone-400 focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 font-sans"
+              />
             </div>
             <Button
               variant="outline"
@@ -114,9 +152,13 @@ const Settings = () => {
 
         {/* Danger zone */}
         <section>
-          <h2 className="font-sans text-xs font-semibold uppercase tracking-wider text-red-400 mb-4">Danger Zone</h2>
+          <h2 className="font-sans text-xs font-semibold uppercase tracking-wider text-red-400 mb-4">
+            Danger Zone
+          </h2>
           <div className="bg-white border border-stone-100 rounded-2xl p-6 shadow-sm">
-            <p className="font-sans text-sm text-stone-500 mb-3">Permanently delete your account and all data.</p>
+            <p className="font-sans text-sm text-stone-500 mb-3">
+              Permanently delete your account and all data.
+            </p>
             <Button
               variant="outline"
               size="sm"

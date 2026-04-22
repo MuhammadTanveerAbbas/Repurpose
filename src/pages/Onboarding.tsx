@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { BrandIcon } from "@/components/BrandIcon";
 import { toast } from "sonner";
@@ -33,7 +33,11 @@ const Onboarding = () => {
     setLoading(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ content_type: contentType, output_goal: outputGoal, onboarding_completed: true })
+      .update({
+        content_type: contentType,
+        output_goal: outputGoal,
+        onboarding_completed: true,
+      })
       .eq("id", user.id);
     if (error) {
       toast.error("Failed to save preferences");
@@ -52,27 +56,44 @@ const Onboarding = () => {
           <Link to="/" aria-label="Repurpose AI home">
             <BrandIcon className="h-12 w-12" />
           </Link>
-          <Link to="/" className="font-display text-xl font-semibold text-stone-900 tracking-tight">
+          <Link
+            to="/"
+            className="font-display text-xl font-semibold text-stone-900 tracking-tight"
+          >
             Repurpose AI
           </Link>
         </div>
 
         {/* Step indicator */}
         <div className="flex items-center gap-2 mb-8">
-          <div className={cn("h-1 flex-1 rounded-full transition-colors", step >= 1 ? "bg-[#E8743A]" : "bg-stone-200")} />
-          <div className={cn("h-1 flex-1 rounded-full transition-colors", step >= 2 ? "bg-[#E8743A]" : "bg-stone-200")} />
+          <div
+            className={cn(
+              "h-1 flex-1 rounded-full transition-colors",
+              step >= 1 ? "bg-[#E8743A]" : "bg-stone-200",
+            )}
+          />
+          <div
+            className={cn(
+              "h-1 flex-1 rounded-full transition-colors",
+              step >= 2 ? "bg-[#E8743A]" : "bg-stone-200",
+            )}
+          />
         </div>
 
         <h1 className="font-display text-2xl text-stone-900 mb-1">
-          {step === 1 ? "What type of content do you create?" : "What's your main goal?"}
+          {step === 1
+            ? "What type of content do you create?"
+            : "What's your main goal?"}
         </h1>
         <p className="font-sans text-sm text-stone-500 mb-8 leading-relaxed">
-          {step === 1 ? "We'll personalize your templates and defaults." : "We'll prioritize the right output formats."}
+          {step === 1
+            ? "We'll personalize your templates and defaults."
+            : "We'll prioritize the right output formats."}
         </p>
 
         {step === 1 ? (
           <div className="grid grid-cols-2 gap-3">
-            {contentTypes.map(ct => (
+            {contentTypes.map((ct) => (
               <button
                 key={ct.value}
                 onClick={() => setContentType(ct.value)}
@@ -80,17 +101,19 @@ const Onboarding = () => {
                   "text-left rounded-2xl border-2 p-4 transition-all font-sans",
                   contentType === ct.value
                     ? "border-amber-400 bg-amber-50"
-                    : "border-stone-200 bg-white hover:border-amber-300 hover:bg-amber-50/50"
+                    : "border-stone-200 bg-white hover:border-amber-300 hover:bg-amber-50/50",
                 )}
               >
                 <span className="text-xl mb-1.5 block">{ct.emoji}</span>
-                <span className="font-sans text-sm font-semibold text-stone-800">{ct.label}</span>
+                <span className="font-sans text-sm font-semibold text-stone-800">
+                  {ct.label}
+                </span>
               </button>
             ))}
           </div>
         ) : (
           <div className="space-y-3">
-            {outputGoals.map(og => (
+            {outputGoals.map((og) => (
               <button
                 key={og.value}
                 onClick={() => setOutputGoal(og.value)}
@@ -98,11 +121,13 @@ const Onboarding = () => {
                   "w-full text-left flex items-center gap-3 rounded-2xl border-2 p-4 transition-all font-sans",
                   outputGoal === og.value
                     ? "border-amber-400 bg-amber-50"
-                    : "border-stone-200 bg-white hover:border-amber-300 hover:bg-amber-50/50"
+                    : "border-stone-200 bg-white hover:border-amber-300 hover:bg-amber-50/50",
                 )}
               >
                 <span className="text-lg">{og.emoji}</span>
-                <span className="font-sans text-sm font-semibold text-stone-800">{og.label}</span>
+                <span className="font-sans text-sm font-semibold text-stone-800">
+                  {og.label}
+                </span>
               </button>
             ))}
           </div>
