@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,7 +35,7 @@ const Signup = () => {
       toast.error(error.message);
     } else {
       toast.success("Account created! Check your email to confirm.");
-      navigate("/onboarding");
+      navigate("/dashboard");
     }
     setLoading(false);
   };
@@ -72,8 +71,9 @@ const Signup = () => {
             variant="outline"
             className="w-full h-11 gap-2 mb-5 rounded-xl border-stone-200 bg-white hover:bg-stone-50 text-sm font-medium text-stone-700 font-sans"
             onClick={async () => {
-              const { error } = await lovable.auth.signInWithOAuth("google", {
-                redirect_uri: window.location.origin,
+              const { error } = await supabase.auth.signInWithOAuth({
+                provider: "google",
+                options: { redirectTo: window.location.origin },
               });
               if (error) toast.error(error.message);
             }}

@@ -1,23 +1,42 @@
-import { createClient } from '@supabase/supabase-js';
-import type { Database } from './types';
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "./types";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: {
-    storage: localStorage,
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    storageKey: 'repurpose-auth',
-  },
-});
+// Singleton pattern to prevent multiple instances during HMR
+let supabaseInstance: ReturnType<typeof createClient<Database>> | null = null;
 
-// Clear stale session if token refresh fails so the app doesn't hang on reload
-supabase.auth.onAuthStateChange((event) => {
-  if (event === 'TOKEN_REFRESHED') return;
-  if (event === 'SIGNED_OUT') {
-    localStorage.removeItem('repurpose-auth');
-  }
-});
+if (!supabaseInstance) {
+  supabaseInstance = createClient<Database>(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY,
+    {
+      auth: {
+        storage: localStorage,
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storageKey: "repurpose-auth",
+        flowType: "pkce",
+      },
+      global: {
+        fetch: (url, options = {}) => {
+          return fetch(url, {
+            ...options,
+            signal: AbortSignal.timeout(15000), // 15 second timeout
+          });
+        },
+      },
+    },
+  );
+
+  // Clear stale session storage only on explicit sign out
+  supabaseInstance.auth.onAuthStateChange((event) => {
+    if (event === "SIGNED_OUT") {
+      localStorage.removeItem("repurpose-auth");
+    }
+  });
+}
+
+export const supabase = supabaseInstance;

@@ -5,11 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 type Profile = {
   id: string;
   full_name: string | null;
-  content_type: string | null;
-  output_goal: string | null;
   plan: string;
   projects_used_this_month: number;
-  onboarding_completed: boolean;
 };
 
 type AuthContextType = {
@@ -37,12 +34,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
+    console.log("🔍 Fetching profile for user:", userId);
+    const { data, error } = await supabase
       .from("profiles")
-      .select("*")
+      .select("id, full_name, plan, projects_used_this_month")
       .eq("id", userId)
       .single();
-    setProfile(data as Profile | null);
+    
+    if (error) {
+      console.error("❌ Error fetching profile:", error);
+      // If profile doesn't exist, create it
+      if (error.code === 'PGRST116') {
+        console.log("📝 Profile not found, creating new profile...");
+        const { data: newProfile, error: insertError } = await supabase
+          .from("profiles")
+          .insert({ id: userId, full_name: null, plan: 'free', projects_used_this_month: 0 })
+          .select("id, full_name, plan, projects_used_this_month")
+          .single();
+        
+        if (insertError) {
+          console.error("❌ Error creating profile:", insertError);
+        } else {
+          console.log("✅ Profile created:", newProfile);
+          setProfile(newProfile as Profile | null);
+        }
+      }
+    } else {
+      console.log("✅ Profile fetched:", data);
+      setProfile(data as Profile | null);
+    }
   };
 
   const refreshProfile = async () => {
@@ -52,7 +72,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let settled = false;
 
-    // Safety timeout if Supabase hangs (e.g. bad refresh token), unblock the UI
     const timeout = setTimeout(() => {
       if (!settled) {
         settled = true;
@@ -77,7 +96,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     });
 
-    // Trigger session resolution
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!settled) {
         settled = true;
@@ -96,10 +114,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setSession(null);
-    setUser(null);
-    setProfile(null);
+    const { error } = await supabase.auth.signOut();
+    if (!error) {
+      setSession(null);
+      setUser(null);
+      setProfile(null);
+      window.location.href = "/login";
+    }
   };
 
   return (

@@ -32,17 +32,17 @@ import {
 
 // --- Data ---
 const valueData = [
-  { label: "Free", drafts: 9, color: "#D1C4B0" },
-  { label: "Creator", drafts: 72, color: "#E8743A" },
-  { label: "Pro", drafts: 72, color: "#D4632A" },
+  { label: "Free", drafts: 5, color: "#D1C4B0" },
+  { label: "Creator", drafts: 999, color: "#E8743A" },
+  { label: "Pro", drafts: 999, color: "#D4632A" },
 ];
 
 const radarData = [
-  { feature: "Formats", free: 50, creator: 100, pro: 100 },
-  { feature: "Projects", free: 30, creator: 100, pro: 100 },
-  { feature: "Tones", free: 33, creator: 66, pro: 100 },
-  { feature: "Exports", free: 20, creator: 60, pro: 100 },
-  { feature: "Team", free: 20, creator: 20, pro: 100 },
+  { feature: "Formats", free: 100, creator: 100, pro: 100 },
+  { feature: "Inputs", free: 100, creator: 100, pro: 100 },
+  { feature: "Generations", free: 20, creator: 100, pro: 100 },
+  { feature: "Exports", free: 60, creator: 80, pro: 100 },
+  { feature: "History", free: 0, creator: 0, pro: 100 },
 ];
 
 const plans = [
@@ -57,16 +57,14 @@ const plans = [
     highlighted: false,
     icon: Zap,
     features: [
-      { text: "3 projects per month", included: true },
-      { text: "3 output formats per project", included: true },
-      { text: "YouTube URL input", included: true },
-      { text: "Paste transcript manually", included: true },
-      { text: "Professional tone only", included: true },
-      { text: "Copy to clipboard export", included: true },
-      { text: "All 6 output formats", included: false },
-      { text: "File uploads (MP3/MP4)", included: false },
-      { text: "TXT & Markdown export", included: false },
-      { text: "Team members", included: false },
+      { text: "5 generations per month", included: true },
+      { text: "All 4 input modes", included: true },
+      { text: "All 9 output formats", included: true },
+      { text: "AI strategy analysis", included: true },
+      { text: "Inline editing + regenerate", included: true },
+      { text: "Copy All + Export .md", included: true },
+      { text: "Project history", included: false },
+      { text: "Priority support", included: false },
     ],
     cta: "Get started free",
     ctaLink: "/signup",
@@ -82,16 +80,14 @@ const plans = [
     highlighted: true,
     icon: Sparkles,
     features: [
-      { text: "Unlimited projects", included: true },
-      { text: "All 6 output formats", included: true },
-      { text: "YouTube URL input", included: true },
-      { text: "Paste transcript manually", included: true },
-      { text: "3 tones + regeneration", included: true },
-      { text: "TXT & Markdown export", included: true },
-      { text: "File uploads (MP3/MP4)", included: true },
-      { text: "Priority processing", included: true },
-      { text: "Custom tone instructions", included: false },
-      { text: "Team members", included: false },
+      { text: "Unlimited generations", included: true },
+      { text: "All 4 input modes", included: true },
+      { text: "All 9 output formats", included: true },
+      { text: "AI strategy analysis", included: true },
+      { text: "Inline editing + regenerate", included: true },
+      { text: "Copy All + Export .md", included: true },
+      { text: "Project history", included: false },
+      { text: "Priority support", included: false },
     ],
     cta: "Available soon",
     ctaLink: null,
@@ -101,22 +97,20 @@ const plans = [
     name: "Pro",
     price: "$99",
     period: "/mo",
-    desc: "For teams & power users",
+    desc: "For power users",
     badge: null,
     comingSoon: true,
     highlighted: false,
     icon: Users,
     features: [
       { text: "Everything in Creator", included: true },
-      { text: "Up to 5 team members", included: true },
-      { text: "Custom tone instructions", included: true },
-      { text: "Saved tones per project", included: true },
-      { text: "Notion & Google Docs export", included: true },
+      { text: "Full project history", included: true },
+      { text: "Re-open past sessions", included: true },
       { text: "Priority support", included: true },
-      { text: "Advanced analytics", included: true },
+      { text: "Notion & Google Docs export", included: true },
       { text: "API access (coming later)", included: true },
+      { text: "Custom tone instructions", included: false },
       { text: "White-label exports", included: false },
-      { text: "Custom integrations", included: false },
     ],
     cta: "Coming soon",
     ctaLink: null,
@@ -129,8 +123,8 @@ const faqs = [
     a: "Payments aren't active yet. You can sign up and use the free plan today. Paid plans will launch soon we'll notify you.",
   },
   {
-    q: "What counts as a project?",
-    a: "Each time you create a new transcript-based project, that counts as one. Regenerating outputs or editing content within a project doesn't count.",
+    q: "What counts as a generation?",
+    a: "Each time you run the full generate flow (strategy analysis + content generation), that counts as one generation. Regenerating individual formats or editing content doesn't count.",
   },
   {
     q: "Can I switch plans later?",
@@ -138,7 +132,7 @@ const faqs = [
   },
   {
     q: "What happens if I hit the free limit?",
-    a: "You'll be blocked from creating new projects until the next month resets, or until you upgrade. Existing projects stay accessible.",
+    a: "You'll see a soft upgrade prompt and won't be able to start a new generation until the next month resets or you upgrade. All your existing outputs stay accessible.",
   },
   {
     q: "Is there a trial for paid plans?",
@@ -443,8 +437,7 @@ const Pricing = () => {
                 </BarChart>
               </ResponsiveContainer>
               <p className="font-sans text-xs text-stone-400 mt-3 text-center">
-                Free: 3 projects × 3 formats = 9 &nbsp;|&nbsp; Paid: unlimited ×
-                6
+                Free: 5 generations/mo &nbsp;|&nbsp; Creator & Pro: unlimited
               </p>
             </motion.div>
 
@@ -569,7 +562,7 @@ const Pricing = () => {
               Start with free, upgrade anytime
             </h2>
             <p className="font-sans text-stone-400 mb-8 leading-relaxed">
-              No card required. 3 projects a month, on us.
+              No card required. 5 free generations a month, on us.
             </p>
             <Link to="/signup">
               <Button
