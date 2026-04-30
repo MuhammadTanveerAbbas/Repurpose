@@ -1,1 +1,1 @@
-{"name": "repurpose"}
+{"name": "repurpose", "installCommand": "pnpm install --no-frozen-lockfile"}
