@@ -75,15 +75,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) {
-        await fetchProfile(session.user.id);
-      } else {
-        setProfile(null);
+      try {
+        if (session?.user) {
+          await fetchProfile(session.user.id);
+        } else {
+          setProfile(null);
+        }
+      } catch (err) {
+        console.error("Auth state change handler error:", err);
+      } finally {
+        if (!settled) {
+          settled = true;
+        }
+        setLoading(false);
       }
-      if (!settled) {
-        settled = true;
-      }
-      setLoading(false);
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -94,6 +99,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (session?.user) fetchProfile(session.user.id);
         setLoading(false);
       }
+    }).catch((err) => {
+      console.error("getSession error:", err);
+      if (!settled) {
+        settled = true;
+      }
+      setLoading(false);
     });
 
     return () => {
