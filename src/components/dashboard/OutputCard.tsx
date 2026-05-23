@@ -4,13 +4,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { FORMAT_ICONS, FORMAT_CHAR_LIMITS } from "@/lib/groq";
 import type { GeneratedOutput } from "@/lib/groq";
-import { Copy, RefreshCw, CheckCircle2 } from "lucide-react";
+import { Copy, RefreshCw, CheckCircle2, Sparkles } from "lucide-react";
 
 interface Props {
   output: GeneratedOutput;
   onRegenerate: () => void;
   onMarkDone: () => void;
   onUpdateContent: (content: string) => void;
+  showPlatformTip?: boolean;
+  platformTip?: string;
 }
 
 export const OutputCard = ({
@@ -18,11 +20,14 @@ export const OutputCard = ({
   onRegenerate,
   onMarkDone,
   onUpdateContent,
+  showPlatformTip,
+  platformTip,
 }: Props) => {
   const [copied, setCopied] = useState(false);
   const isLoading = !output.content;
   const charLimit = FORMAT_CHAR_LIMITS[output.format];
   const charCount = output.content.length;
+  const wordCount = output.content ? output.content.split(/\s+/).filter(Boolean).length : 0;
 
   const charColor = charLimit
     ? charCount > charLimit
@@ -55,6 +60,11 @@ export const OutputCard = ({
           {output.done && (
             <span className="font-sans text-xs text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
               Done
+            </span>
+          )}
+          {isLoading && (
+            <span className="font-sans text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full animate-pulse">
+              Generating...
             </span>
           )}
         </div>
@@ -101,6 +111,16 @@ export const OutputCard = ({
         </div>
       </div>
 
+      {/* Platform tip */}
+      {showPlatformTip && platformTip && !isLoading && (
+        <div className="mb-3 flex items-start gap-2 bg-stone-50 border border-stone-200 rounded-xl p-3">
+          <Sparkles className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
+          <p className="font-sans text-xs text-stone-500 leading-relaxed">
+            {platformTip}
+          </p>
+        </div>
+      )}
+
       {/* Content */}
       {isLoading ? (
         <div className="space-y-2">
@@ -108,6 +128,7 @@ export const OutputCard = ({
           <div className="h-4 bg-stone-100 rounded animate-pulse w-4/5" />
           <div className="h-4 bg-stone-100 rounded animate-pulse w-3/5" />
           <div className="h-4 bg-stone-100 rounded animate-pulse w-4/5" />
+          <div className="h-4 bg-stone-100 rounded animate-pulse w-2/5" />
         </div>
       ) : (
         <>
@@ -117,7 +138,10 @@ export const OutputCard = ({
             rows={8}
             className="rounded-xl border-stone-200 bg-stone-50 text-stone-800 text-sm font-sans resize-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400"
           />
-          <div className="flex justify-end mt-1.5">
+          <div className="flex justify-between mt-1.5">
+            <span className="font-sans text-xs text-stone-400">
+              {wordCount} words
+            </span>
             <span className={cn("font-sans text-xs", charColor)}>
               {charCount.toLocaleString()}
               {charLimit ? ` / ${charLimit.toLocaleString()} chars` : " chars"}

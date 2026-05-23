@@ -14,17 +14,28 @@ export default async function handler(
     return response.status(405).json({ error: "Method not allowed" });
   }
 
-  const authHeader = request.headers.authorization;
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return response.status(401).json({ error: "Unauthorized" });
+  try {
+    const { error } = await supabase.from("projects").select("id").limit(1);
+
+    if (error) {
+      return response.status(503).json({
+        status: "unhealthy",
+        timestamp: new Date().toISOString(),
+        database: "disconnected",
+      });
+    }
+
+    return response.status(200).json({
+      status: "ok",
+      timestamp: new Date().toISOString(),
+      database: "connected",
+      version: "1.0.0",
+    });
+  } catch (err) {
+    return response.status(500).json({
+      status: "unhealthy",
+      timestamp: new Date().toISOString(),
+      error: "Internal error",
+    });
   }
-
-  const { error } = await supabase.from("projects").select("id").limit(1);
-
-  if (error) {
-    console.error("Keep-alive query failed:", error);
-    return response.status(500).json({ error: "Database connection failed" });
-  }
-
-  return response.status(200).json({ success: true, message: "Database connection alive" });
 }

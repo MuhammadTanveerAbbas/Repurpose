@@ -1,14 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 
 export const SettingsTab = () => {
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile, signOut } = useAuth();
+  const navigate = useNavigate();
   const [fullName, setFullName] = useState(profile?.full_name ?? "");
 
   useEffect(() => {
@@ -17,6 +20,8 @@ export const SettingsTab = () => {
   const [saving, setSaving] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const planLimits: Record<string, number> = {
     free: 5,
@@ -55,6 +60,26 @@ export const SettingsTab = () => {
     }
     setChangingPassword(false);
   };
+
+  const handleDeleteAccount = useCallback(async () => {
+    if (!user) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.rpc("delete_user");
+      if (error) throw error;
+
+      await signOut();
+      toast.success("Account deleted permanently");
+      navigate("/");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete account"
+      );
+    } finally {
+      setDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  }, [user, signOut, navigate]);
 
   return (
     <div className="max-w-xl mx-auto space-y-6">
@@ -154,19 +179,28 @@ export const SettingsTab = () => {
           Danger Zone
         </p>
         <p className="font-sans text-sm text-stone-500 mb-3">
-          Permanently delete your account and all data.
+          Permanently delete your account and all data. This action cannot be undone.
         </p>
         <Button
           variant="outline"
           size="sm"
-          className="rounded-xl border-red-200 text-red-400 hover:bg-red-50 font-sans"
-          onClick={() =>
-            toast.error("Account deletion requires admin support. Contact us.")
-          }
+          className="rounded-xl border-red-200 text-red-500 hover:bg-red-50 font-sans"
+          onClick={() => setShowDeleteDialog(true)}
         >
           Delete account
         </Button>
       </div>
+
+      <ConfirmDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        title="Delete your account?"
+        description="This will permanently delete your account, profile, and all projects. This action cannot be undone."
+        confirmLabel={deleting ? "Deleting…" : "Delete my account"}
+        cancelLabel="Cancel"
+        variant="destructive"
+        onConfirm={handleDeleteAccount}
+      />
     </div>
   );
 };

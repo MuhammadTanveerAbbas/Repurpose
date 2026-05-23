@@ -1,7 +1,9 @@
 {
   "compilerOptions": {
     "allowJs": true,
-    "noImplicitAny": false,
+    "strict": true,
+    "noImplicitAny": true,
+    "noUncheckedIndexedAccess": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "paths": {
@@ -10,7 +12,7 @@
       ]
     },
     "skipLibCheck": true,
-    "strictNullChecks": false
+    "strictNullChecks": true
   },
   "files": [],
   "references": [

@@ -19,6 +19,7 @@ export type Database = {
           id: string;
           plan: string;
           projects_used_this_month: number;
+          stripe_customer_id: string | null;
           updated_at: string;
         };
         Insert: {
@@ -27,6 +28,7 @@ export type Database = {
           id: string;
           plan?: string;
           projects_used_this_month?: number;
+          stripe_customer_id?: string | null;
           updated_at?: string;
         };
         Update: {
@@ -35,6 +37,7 @@ export type Database = {
           id?: string;
           plan?: string;
           projects_used_this_month?: number;
+          stripe_customer_id?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -78,12 +81,61 @@ export type Database = {
         };
         Relationships: [];
       };
+      subscriptions: {
+        Row: {
+          id: string;
+          user_id: string;
+          stripe_subscription_id: string | null;
+          stripe_customer_id: string | null;
+          status: string;
+          plan_id: string;
+          current_period_start: string | null;
+          current_period_end: string | null;
+          cancel_at_period_end: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          stripe_subscription_id?: string | null;
+          stripe_customer_id?: string | null;
+          status?: string;
+          plan_id?: string;
+          current_period_start?: string | null;
+          current_period_end?: string | null;
+          cancel_at_period_end?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          stripe_subscription_id?: string | null;
+          stripe_customer_id?: string | null;
+          status?: string;
+          plan_id?: string;
+          current_period_start?: string | null;
+          current_period_end?: string | null;
+          cancel_at_period_end?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      increment_projects_used: {
+        Args: { user_id: string };
+        Returns: number;
+      };
+      reset_monthly_usage: {
+        Args: Record<string, never>;
+        Returns: void;
+      };
     };
     Enums: {
       [_ in never]: never;

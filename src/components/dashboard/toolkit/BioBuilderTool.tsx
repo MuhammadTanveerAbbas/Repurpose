@@ -4,55 +4,83 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { callGroq } from "@/lib/groq";
-import { Copy, CheckCircle2 } from "lucide-react";
+import { Copy, CheckCircle2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 
 interface BioOutputs {
   linkedin: string;
   twitter: string;
   tagline: string;
+  instagram: string;
+  website_hero: string;
 }
 
 const STEPS = [
-  "What you do",
-  "Who you help",
-  "Your result",
-  "What you're building",
+  { question: "What do you do?", hint: "e.g. I build MVPs for non-technical founders", detail: "Be specific about your role and niche." },
+  { question: "Who do you help?", hint: "e.g. Solo founders who want to ship fast", detail: "Define your ideal client/customer." },
+  { question: "What result do you deliver?", hint: "e.g. Shipped 30+ products in 3 years", detail: "Quantifiable outcomes or track record." },
+  { question: "What are you building now?", hint: "e.g. A SaaS tool for content creators", detail: "Current focus or upcoming project." },
+  { question: "What makes you unique?", hint: "e.g. I'm the only one combining X with Y", detail: "Your unfair advantage or unique approach." },
 ];
 
 export const BioBuilderTool = () => {
-  const [answers, setAnswers] = useState(["", "", "", ""]);
+  const [answers, setAnswers] = useState(["", "", "", "", ""]);
   const [output, setOutput] = useState<BioOutputs | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     if (answers.some((a) => !a.trim())) {
-      toast.error("Fill in all 4 fields first.");
+      toast.error("Fill in all 5 fields first.");
       return;
     }
     setLoading(true);
     setOutput(null);
     try {
-      const system = `You are a personal branding expert. 
-Based on the 4 answers provided, generate 3 bios:
+      const system = `You are a world-class personal branding copywriter. You've written bios for founders who've gone viral, raised funding, and built audiences.
 
-1. LinkedIn Bio (3 sentences, third-person, professional but human. No buzzwords like "passionate" or "guru".)
-2. Twitter/X Bio (1–2 lines max, first-person, punchy, under 160 chars)
-3. Website Tagline (under 10 words, first-person or second-person, bold and specific)
+Based on the 5 answers provided, generate 5 distinct copy pieces:
 
-Return ONLY valid JSON, no extra text:
+1. **LinkedIn Bio** (3 sentences, third-person):
+   - Sentence 1: Position + niche + specific outcome
+   - Sentence 2: Proof + credibility (metrics, notable work, years)
+   - Sentence 3: Current focus + what they're open to
+   - No buzzwords: no "passionate", "results-driven", "thought leader", "guru"
+   - Under 100 words total
+
+2. **Twitter/X Bio** (1-2 lines, first-person):
+   - Under 160 characters
+   - Punchy, quotable, specific
+   - End with a subtle CTA or identity marker
+
+3. **Website Tagline** (under 8 words):
+   - Bold, benefit-driven, memorable
+   - Could go on a hero section
+
+4. **Instagram Bio** (1 line + 1-3 line breaks):
+   - Identity + value + emoji (max 2 emojis)
+   - Under 150 characters
+   - Include a subtle CTA or link mention
+
+5. **Website Hero Headline** (1 line):
+   - The ONE thing you want someone to know in 5 seconds
+   - Under 12 words
+   - Good enough to be the H1 on their landing page
+
+Return ONLY valid JSON:
 {
   "linkedin": "...",
   "twitter": "...",
-  "tagline": "..."
+  "tagline": "...",
+  "instagram": "...",
+  "website_hero": "..."
 }`;
 
       const userMsg = `What I do: ${answers[0]}
 Who I help: ${answers[1]}
 My result/track record: ${answers[2]}
-What I'm building now: ${answers[3]}`;
+What I'm building now: ${answers[3]}
+What makes me unique: ${answers[4]}`;
 
       const raw = await callGroq(system, userMsg);
       const match = raw.match(/\{[\s\S]*\}/);
@@ -71,12 +99,13 @@ What I'm building now: ${answers[3]}`;
     setTimeout(() => setCopied(null), 2000);
   };
 
-  const placeholders = [
-    "e.g. I build MVPs for non-technical founders",
-    "e.g. Solo founders who want to ship fast",
-    "e.g. Shipped 30+ products in 3 years",
-    "e.g. A SaaS tool for content creators",
-  ];
+  const outputs = output ? [
+    { key: "linkedin", label: "💼 LinkedIn Bio", value: output.linkedin },
+    { key: "twitter", label: "🐦 Twitter/X Bio", value: output.twitter, charLimit: 160 },
+    { key: "tagline", label: "✨ Website Tagline", value: output.tagline, charLimit: 60 },
+    { key: "instagram", label: "📸 Instagram Bio", value: output.instagram, charLimit: 150 },
+    { key: "website_hero", label: "🚀 Hero Headline", value: output.website_hero, charLimit: 80 },
+  ] as const : [];
 
   return (
     <div className="bg-white border border-stone-100 rounded-2xl p-5 shadow-sm space-y-5">
@@ -85,22 +114,18 @@ What I'm building now: ${answers[3]}`;
           Bio Builder
         </h3>
         <p className="font-sans text-sm text-stone-500">
-          Answer 4 quick questions. Get a LinkedIn bio, Twitter bio, and website
-          tagline.
+          Answer 5 quick questions. Get a LinkedIn bio, Twitter bio, website tagline, Instagram bio, and hero headline.
         </p>
       </div>
 
       <div className="space-y-3">
         {STEPS.map((step, i) => (
-          <div key={step} className="space-y-1.5">
+          <div key={step.question} className="space-y-1">
             <Label className="font-sans text-sm font-medium text-stone-700">
-              <span className="text-amber-500 font-semibold mr-1">
-                {i + 1}.
-              </span>{" "}
-              {step}
+              <span className="text-amber-500 font-semibold mr-1">{i + 1}.</span> {step.question}
             </Label>
             <Input
-              placeholder={placeholders[i]}
+              placeholder={step.hint}
               value={answers[i]}
               onChange={(e) => {
                 const next = [...answers];
@@ -123,43 +148,31 @@ What I'm building now: ${answers[3]}`;
 
       {output && (
         <div className="space-y-3">
-          {(
-            [
-              {
-                key: "linkedin",
-                label: "💼 LinkedIn Bio",
-                value: output.linkedin,
-              },
-              {
-                key: "twitter",
-                label: "🐦 Twitter/X Bio",
-                value: output.twitter,
-              },
-              {
-                key: "tagline",
-                label: "✨ Website Tagline",
-                value: output.tagline,
-              },
-            ] as const
-          ).map(({ key, label, value }) => (
-            <div
-              key={key}
-              className="bg-stone-50 border border-stone-100 rounded-xl p-4"
-            >
+          {outputs.map(({ key, label, value, charLimit }) => (
+            <div key={key} className="bg-stone-50 border border-stone-100 rounded-xl p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-400">
                   {label}
                 </span>
-                <button
-                  onClick={() => handleCopy(key, value)}
-                  className="h-6 w-6 flex items-center justify-center rounded-lg text-stone-300 hover:text-stone-600 transition-colors"
-                >
-                  {copied === key ? (
-                    <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-                  ) : (
-                    <Copy className="h-3.5 w-3.5" />
+                <div className="flex items-center gap-2">
+                  {charLimit && (
+                    <span className={`font-sans text-[10px] ${
+                      value.length > charLimit ? "text-red-500" : "text-stone-400"
+                    }`}>
+                      {value.length}/{charLimit}
+                    </span>
                   )}
-                </button>
+                  <button
+                    onClick={() => handleCopy(key, value)}
+                    className="h-6 w-6 flex items-center justify-center rounded-lg text-stone-300 hover:text-stone-600 transition-colors"
+                  >
+                    {copied === key ? (
+                      <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                    ) : (
+                      <Copy className="h-3.5 w-3.5" />
+                    )}
+                  </button>
+                </div>
               </div>
               <p className="font-sans text-sm text-stone-800 leading-relaxed">
                 {value}

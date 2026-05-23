@@ -71,8 +71,13 @@ export const InputStep = ({
       }
       const videoId = videoIdMatch[1];
       try {
+        const { supabase } = await import("@/integrations/supabase/client");
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token ?? "";
+
         const res = await fetch(
-          `https://yt-transcript-api.vercel.app/api/transcript?videoId=${videoId}`,
+          `/api/transcript?videoId=${videoId}`,
+          { headers: { Authorization: `Bearer ${token}` } },
         );
         if (!res.ok) throw new Error();
         const data = await res.json();

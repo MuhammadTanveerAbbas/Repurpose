@@ -118,12 +118,20 @@ const Login = () => {
               />
             </div>
             <div className="space-y-1.5">
-              <Label
-                htmlFor="password"
-                className="font-sans text-sm font-medium text-stone-700"
-              >
-                Password
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label
+                  htmlFor="password"
+                  className="font-sans text-sm font-medium text-stone-700"
+                >
+                  Password
+                </Label>
+                <Link
+                  to="/forgot-password"
+                  className="font-sans text-xs text-amber-600 hover:underline font-medium"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <Input
                 id="password"
                 type="password"
@@ -143,7 +151,33 @@ const Login = () => {
             </Button>
           </form>
 
-          <p className="mt-6 text-center font-sans text-sm text-stone-500">
+          <div className="mt-4 text-center">
+            <button
+              type="button"
+              onClick={async () => {
+                if (!email.trim()) {
+                  toast.error("Enter your email first.");
+                  return;
+                }
+                setLoading(true);
+                const { error } = await supabase.auth.resetPasswordForEmail(
+                  email.trim(),
+                  { redirectTo: `${window.location.origin}/dashboard` },
+                );
+                if (error) {
+                  toast.error(error.message);
+                } else {
+                  toast.success("Check your email for the reset link.");
+                }
+                setLoading(false);
+              }}
+              className="font-sans text-sm text-amber-600 hover:underline font-medium"
+            >
+              Forgot password?
+            </button>
+          </div>
+
+          <p className="mt-4 text-center font-sans text-sm text-stone-500">
             No account?{" "}
             <Link
               to="/signup"

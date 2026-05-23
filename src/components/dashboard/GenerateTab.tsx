@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { InputStep } from "./InputStep";
 import { StrategyCard } from "./StrategyCard";
 import { OutputsSection } from "./OutputsSection";
@@ -8,7 +8,7 @@ import type {
   ContentFormat,
   GeneratedOutput,
 } from "@/lib/groq";
-import { analyzeContent, generateFormat } from "@/lib/groq";
+import { analyzeContent, generateAllFormats } from "@/lib/groq";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
@@ -24,7 +24,7 @@ export const GenerateTab = () => {
   const [selectedFormats, setSelectedFormats] = useState<ContentFormat[]>([]);
   const [outputs, setOutputs] = useState<GeneratedOutput[]>([]);
   const [analyzingLoading, setAnalyzingLoading] = useState(false);
-  const [generatingLoading, setGeneratingLoading] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
   const planLimits: Record<string, number> = {
     free: 5,
@@ -56,51 +56,38 @@ export const GenerateTab = () => {
     }
   };
 
-  const handleGenerate = async () => {
-    if (!strategy) return;
-    setGeneratingLoading(true);
-    setOutputs(
-      selectedFormats.map((f) => ({ format: f, content: "", done: false })),
-    );
+  const handleGenerate = useCallback(async () => {
+    if (!strategy || selectedFormats.length === 0) return;
+
+    setGenerating(true);
+    const initialOutputs: GeneratedOutput[] = selectedFormats.map((f) => ({
+      format: f,
+      content: "",
+      done: false,
+    }));
+    setOutputs(initialOutputs);
     setStep("outputs");
 
-    const results: GeneratedOutput[] = [];
+    const completedOutputs: GeneratedOutput[] = [];
 
-    for (const format of selectedFormats) {
-      try {
-        const content = await generateFormat(format, strategy, rawInput);
-        results.push({ format, content, done: false });
-        setOutputs([
-          ...results,
-          ...selectedFormats
-            .slice(results.length)
-            .map((f) => ({ format: f, content: "", done: false })),
-        ]);
-      } catch {
-        results.push({
-          format,
-          content: "Generation failed. Hit regenerate to retry.",
-          done: false,
-        });
-        setOutputs([
-          ...results,
-          ...selectedFormats
-            .slice(results.length)
-            .map((f) => ({ format: f, content: "", done: false })),
-        ]);
+    const onProgress = (format: ContentFormat, content: string, error?: string) => {
+      setOutputs((prev) =>
+        prev.map((o) =>
+          o.format === format
+            ? { ...o, content: content || (error ? "Generation failed. Hit regenerate to retry." : "") }
+            : o,
+        ),
+      );
+      if (content) {
+        completedOutputs.push({ format, content, done: false });
       }
-    }
+    };
 
-    setGeneratingLoading(false);
+    await generateAllFormats(selectedFormats, strategy, rawInput, onProgress);
+    setGenerating(false);
 
-    // Save to Supabase
     if (user && strategy) {
       try {
-        const outputsMap: Record<string, string> = {};
-        results.forEach((r) => {
-          outputsMap[r.format] = r.content;
-        });
-
         const { error } = await supabase.from("projects").insert({
           user_id: user.id,
           title: strategy.core_message.slice(0, 100),
@@ -108,24 +95,24 @@ export const GenerateTab = () => {
           transcript: rawInput,
           selected_outputs: selectedFormats,
           status: "completed",
-          output_count: results.length,
+          output_count: completedOutputs.length,
         });
 
-        if (error) {
-          // Non-fatal — outputs are still shown
-        } else {
-          // Increment usage counter
-          await supabase
-            .from("profiles")
-            .update({ projects_used_this_month: used + 1 })
-            .eq("id", user.id);
+        if (!error) {
+          const { error: rpcError } = await supabase.rpc(
+            "increment_projects_used",
+            { user_id: user.id },
+          );
+          if (rpcError) {
+            console.error("Failed to increment usage counter:", rpcError);
+          }
           await refreshProfile();
         }
       } catch {
         // Non-fatal
       }
     }
-  };
+  }, [strategy, selectedFormats, rawInput, user, inputMode, refreshProfile]);
 
   const handleRegenerate = async (format: ContentFormat) => {
     if (!strategy) return;
@@ -133,6 +120,7 @@ export const GenerateTab = () => {
       prev.map((o) => (o.format === format ? { ...o, content: "" } : o)),
     );
     try {
+      const { generateFormat } = await import("@/lib/groq");
       const content = await generateFormat(format, strategy, rawInput);
       setOutputs((prev) =>
         prev.map((o) => (o.format === format ? { ...o, content } : o)),
@@ -191,14 +179,14 @@ export const GenerateTab = () => {
           }
           onGenerate={handleGenerate}
           onBack={() => setStep("input")}
-          loading={generatingLoading}
+          loading={generating}
         />
       )}
       {step === "outputs" && strategy && (
         <OutputsSection
           outputs={outputs}
           strategy={strategy}
-          generating={generatingLoading}
+          generating={generating}
           onRegenerate={handleRegenerate}
           onMarkDone={handleMarkDone}
           onUpdateContent={handleUpdateContent}

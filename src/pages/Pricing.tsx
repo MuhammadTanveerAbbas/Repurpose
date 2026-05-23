@@ -1,6 +1,6 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import {
   Check,
   ArrowRight,
@@ -9,12 +9,14 @@ import {
   Sparkles,
   Clock,
   Lock,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
 import { FadeUp } from "@/components/FadeUp";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
+import { getStripe } from "@/lib/stripe/client";
 import {
   BarChart,
   Bar,
@@ -45,9 +47,12 @@ const radarData = [
   { feature: "History", free: 0, creator: 0, pro: 100 },
 ];
 
+import { toast } from "sonner";
+import type { PlanId } from "@/config/plans";
+
 const plans = [
   {
-    id: "free",
+    id: "free" as PlanId,
     name: "Free",
     price: "$0",
     period: "",
@@ -67,10 +72,9 @@ const plans = [
       { text: "Priority support", included: false },
     ],
     cta: "Get started free",
-    ctaLink: "/signup",
   },
   {
-    id: "creator",
+    id: "creator" as PlanId,
     name: "Creator",
     price: "$49",
     period: "/mo",
@@ -89,11 +93,10 @@ const plans = [
       { text: "Project history", included: false },
       { text: "Priority support", included: false },
     ],
-    cta: "Available soon",
-    ctaLink: null,
+    cta: "Subscribe",
   },
   {
-    id: "pro",
+    id: "pro" as PlanId,
     name: "Pro",
     price: "$99",
     period: "/mo",
@@ -112,8 +115,7 @@ const plans = [
       { text: "Custom tone instructions", included: false },
       { text: "White-label exports", included: false },
     ],
-    cta: "Coming soon",
-    ctaLink: null,
+    cta: "Subscribe",
   },
 ];
 
@@ -141,9 +143,51 @@ const faqs = [
 ];
 
 const Pricing = () => {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
+  const navigate = useNavigate();
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInView = useInView(chartRef, { once: true, margin: "-80px" });
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+
+  const handleCheckout = async (planId: string) => {
+    if (!user) {
+      navigate("/signup");
+      return;
+    }
+
+    setCheckoutLoading(planId);
+
+    try {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token ?? "";
+
+      const res = await fetch("/api/stripe/create-checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          planId,
+          successUrl: window.location.origin + "/dashboard",
+          cancelUrl: window.location.origin + "/pricing",
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error ?? "Checkout failed");
+      }
+
+      const { url } = await res.json();
+      window.location.href = url;
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Checkout failed. Try again.");
+    } finally {
+      setCheckoutLoading(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#F8F5F0]">
@@ -307,15 +351,7 @@ const Pricing = () => {
                   </ul>
 
                   {/* CTA */}
-                  {plan.comingSoon ? (
-                    <Button
-                      disabled
-                      size="sm"
-                      className="w-full rounded-xl font-sans font-semibold bg-stone-100 text-stone-400 cursor-not-allowed hover:bg-stone-100"
-                    >
-                      <Lock className="h-3.5 w-3.5 mr-1.5" /> Coming soon
-                    </Button>
-                  ) : isCurrentPlan ? (
+                  {isCurrentPlan && !plan.comingSoon ? (
                     <Button
                       size="sm"
                       variant="outline"
@@ -329,20 +365,45 @@ const Pricing = () => {
                     >
                       Current plan
                     </Button>
-                  ) : (
-                    <Link to={plan.ctaLink!}>
+                  ) : plan.comingSoon ? (
+                    <Button
+                      disabled
+                      size="sm"
+                      className="w-full rounded-xl font-sans font-semibold bg-stone-100 text-stone-400 cursor-not-allowed hover:bg-stone-100"
+                    >
+                      <Lock className="h-3.5 w-3.5 mr-1.5" /> Coming soon
+                    </Button>
+                  ) : plan.id === "free" ? (
+                    <Link to={user ? "/dashboard" : "/signup"}>
                       <Button
                         size="sm"
-                        className={cn(
-                          "w-full rounded-xl font-sans font-semibold gap-1.5 transition-all active:scale-[0.98]",
-                          plan.highlighted
-                            ? "bg-white text-[#E8743A] hover:bg-stone-100"
-                            : "bg-[#E8743A] hover:bg-[#D4632A] text-white shadow-brand",
-                        )}
+                        className="w-full rounded-xl font-sans font-semibold bg-[#E8743A] hover:bg-[#D4632A] text-white shadow-brand transition-all active:scale-[0.98]"
                       >
-                        {plan.cta} <ArrowRight className="h-3.5 w-3.5" />
+                        {user ? "Go to dashboard" : plan.cta} <ArrowRight className="h-3.5 w-3.5" />
                       </Button>
                     </Link>
+                  ) : (
+                    <Button
+                      size="sm"
+                      onClick={() => handleCheckout(plan.id)}
+                      disabled={checkoutLoading === plan.id}
+                      className={cn(
+                        "w-full rounded-xl font-sans font-semibold gap-1.5 transition-all active:scale-[0.98]",
+                        plan.highlighted
+                          ? "bg-white text-[#E8743A] hover:bg-stone-100"
+                          : "bg-[#E8743A] hover:bg-[#D4632A] text-white shadow-brand",
+                      )}
+                    >
+                      {checkoutLoading === plan.id ? (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Processing…
+                        </>
+                      ) : (
+                        <>
+                          {plan.cta} <ArrowRight className="h-3.5 w-3.5" />
+                        </>
+                      )}
+                    </Button>
                   )}
                 </div>
               </motion.div>

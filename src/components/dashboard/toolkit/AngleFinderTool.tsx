@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { callGroq, FORMAT_ICONS } from "@/lib/groq";
 import type { ContentFormat } from "@/lib/groq";
-import { Copy, CheckCircle2 } from "lucide-react";
+import { Copy, CheckCircle2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 interface Angle {
@@ -12,6 +12,7 @@ interface Angle {
   description: string;
   format: string;
   hook: string;
+  distribution_advice: string;
 }
 
 export const AngleFinderTool = () => {
@@ -28,24 +29,38 @@ export const AngleFinderTool = () => {
     setLoading(true);
     setAngles([]);
     try {
-      const system = `You are a content strategist for solo founders and creators.
-For the given topic, generate exactly 8 different content angles.
-Each angle must be genuinely different — different perspective, different audience emotion, different narrative approach.
+      const system = `You are a senior content strategist who plans content for 7-figure creators and founders.
+
+For the given topic, generate exactly 8 completely DIFFERENT content angles. Every angle must offer a genuinely unique perspective, not a minor variation.
+
+THE 8 ANGLE FRAMEWORKS (use each exactly once):
+
+1. **The Contrarian** — Argue against the popular opinion. "Everyone says X, but here's why the opposite is true."
+2. **The Beginner's Journey** — Frame it as a lesson learned through trial and error. "What I wish I knew before starting [topic]."
+3. **The Data-Driven** — Lead with a specific number, stat, or case study. "I analyzed 100 [things] and found X pattern."
+4. **The Vulnerability Play** — Open with a failure, doubt, or mistake, then reveal the lesson.
+5. **The Prediction** — Make a forward-looking claim. "Here's what [topic] looks like in 2027."
+6. **The Step-by-Step** — Break it down as a repeatable system or framework. "The 3-step system for [outcome]."
+7. **The Comparison** — Compare two approaches with a clear winner. "Strategy A vs Strategy B — which actually works?"
+8. **The Insider Secret** — Share something most people in your space don't know or won't say.
 
 For each angle provide:
-- angle: the angle name (e.g. "The Contrarian Take", "The Beginner's Journey")
-- description: 1 sentence explaining the angle
-- format: the best content format for this angle (choose from: LinkedIn Post, LinkedIn Hook, Twitter/X Thread, Short-form Video Script, Cold Email Draft, Newsletter Section, YouTube Description, Instagram Caption, Personal Brand Bio Update)
-- hook: a ready-to-use opening line for this angle
+- angle: a short, punchy name (3-5 words)
+- description: ONE sentence that hooks a reader into wanting this angle
+- format: the single BEST content format for this angle (choose from: LinkedIn Post, LinkedIn Hook, Twitter/X Thread, Short-form Video Script, Cold Email Draft, Newsletter Section, YouTube Description, Instagram Caption, Personal Brand Bio Update)
+- hook: a ready-to-use opening line (1 sentence, under 20 words) optimized for that format
+- distribution_advice: ONE sentence on where and how to publish this (specific platform + posting strategy)
 
-Return ONLY valid JSON array, no extra text:
+Return ONLY valid JSON:
 [
   {
-    "angle": "...",
-    "description": "...",
-    "format": "...",
-    "hook": "..."
-  }
+    "angle": "The Contrarian Take",
+    "description": "Challenge the status quo and position yourself as the one who tells the truth.",
+    "format": "Twitter/X Thread",
+    "hook": "The most expensive advice I've ever received was completely wrong.",
+    "distribution_advice": "Post as a 5-tweet thread on Tuesday, pin to profile, repurpose hook as a LinkedIn post."
+  },
+  ...
 ]`;
 
       const raw = await callGroq(system, `Topic: ${topic}`);
@@ -73,8 +88,7 @@ Return ONLY valid JSON array, no extra text:
           Content Angle Finder
         </h3>
         <p className="font-sans text-sm text-stone-500">
-          Know what to write about but not how to approach it? Get 8 angles with
-          a hook for each.
+          8 distinct content angles — each with a hook, format recommendation, and distribution strategy.
         </p>
       </div>
 
@@ -103,10 +117,7 @@ Return ONLY valid JSON array, no extra text:
       {loading && (
         <div className="space-y-2">
           {[...Array(4)].map((_, i) => (
-            <div
-              key={i}
-              className="h-20 rounded-xl bg-stone-100 animate-pulse"
-            />
+            <div key={i} className="h-24 rounded-xl bg-stone-100 animate-pulse" />
           ))}
         </div>
       )}
@@ -122,7 +133,7 @@ Return ONLY valid JSON array, no extra text:
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
+                    <div className="flex items-center gap-2 mb-1">
                       <span className="font-sans text-xs font-semibold text-amber-500 uppercase tracking-wider">
                         {angle.angle}
                       </span>
@@ -133,9 +144,17 @@ Return ONLY valid JSON array, no extra text:
                     <p className="font-sans text-xs text-stone-500 mb-2">
                       {angle.description}
                     </p>
-                    <p className="font-sans text-sm text-stone-800 leading-relaxed italic">
+                    <p className="font-sans text-sm text-stone-800 leading-relaxed italic border-l-2 border-amber-300 pl-3">
                       "{angle.hook}"
                     </p>
+                    {angle.distribution_advice && (
+                      <div className="mt-2 flex items-start gap-1.5">
+                        <Sparkles className="h-3 w-3 text-amber-400 shrink-0 mt-0.5" />
+                        <p className="font-sans text-[11px] text-stone-500 leading-relaxed">
+                          {angle.distribution_advice}
+                        </p>
+                      </div>
+                    )}
                   </div>
                   <button
                     onClick={() => handleCopy(angle.hook, i)}

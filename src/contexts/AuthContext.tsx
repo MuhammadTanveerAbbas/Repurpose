@@ -1,12 +1,14 @@
 import { createContext, useEffect, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { validateEnv } from "@/lib/env";
 
 type Profile = {
   id: string;
   full_name: string | null;
   plan: string;
   projects_used_this_month: number;
+  stripe_customer_id: string | null;
 };
 
 type AuthContextType = {
@@ -33,34 +35,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    validateEnv();
+  }, []);
+
   const fetchProfile = async (userId: string) => {
-    console.log("🔍 Fetching profile for user:", userId);
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, full_name, plan, projects_used_this_month")
+      .select("id, full_name, plan, projects_used_this_month, stripe_customer_id")
       .eq("id", userId)
       .single();
     
     if (error) {
-      console.error("❌ Error fetching profile:", error);
-      // If profile doesn't exist, create it
       if (error.code === 'PGRST116') {
-        console.log("📝 Profile not found, creating new profile...");
         const { data: newProfile, error: insertError } = await supabase
           .from("profiles")
           .insert({ id: userId, full_name: null, plan: 'free', projects_used_this_month: 0 })
-          .select("id, full_name, plan, projects_used_this_month")
+          .select("id, full_name, plan, projects_used_this_month, stripe_customer_id")
           .single();
         
-        if (insertError) {
-          console.error("❌ Error creating profile:", insertError);
-        } else {
-          console.log("✅ Profile created:", newProfile);
+        if (!insertError && newProfile) {
           setProfile(newProfile as Profile | null);
         }
       }
     } else {
-      console.log("✅ Profile fetched:", data);
       setProfile(data as Profile | null);
     }
   };
@@ -71,13 +69,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     let settled = false;
-
-    const timeout = setTimeout(() => {
-      if (!settled) {
-        settled = true;
-        setLoading(false);
-      }
-    }, 3000);
 
     const {
       data: { subscription },
@@ -91,7 +82,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       if (!settled) {
         settled = true;
-        clearTimeout(timeout);
       }
       setLoading(false);
     });
@@ -99,7 +89,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!settled) {
         settled = true;
-        clearTimeout(timeout);
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) fetchProfile(session.user.id);
@@ -108,7 +97,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => {
-      clearTimeout(timeout);
       subscription.unsubscribe();
     };
   }, []);
