@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useEffect, useState, useRef, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { validateEnv } from "@/lib/env";
@@ -29,15 +29,24 @@ export const AuthContext = createContext<AuthContextType>({
   refreshProfile: async () => {},
 });
 
+const LOADING_TIMEOUT_MS = 8_000;
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const initialized = useRef(false);
 
   useEffect(() => {
     validateEnv();
   }, []);
+
+  const clearStaleSession = () => {
+    try {
+      localStorage.removeItem("repurpose-auth");
+    } catch {}
+  };
 
   const fetchProfile = async (userId: string) => {
     const { data, error } = await supabase
@@ -63,53 +72,99 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const verifySession = async (session: Session): Promise<boolean> => {
+    try {
+      const { error } = await supabase.auth.getUser(session.access_token);
+      if (error) {
+        console.warn("Stale session detected, clearing:", error.message);
+        await supabase.auth.signOut();
+        clearStaleSession();
+        return false;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const refreshProfile = async () => {
     if (user) await fetchProfile(user.id);
   };
 
-  useEffect(() => {
-    let settled = false;
+  const stripAuthParamsFromUrl = () => {
+    const url = new URL(window.location.href);
+    const paramsToRemove = ["code", "error", "error_description", "error_code"];
+    let changed = false;
+    for (const param of paramsToRemove) {
+      if (url.searchParams.has(param)) {
+        url.searchParams.delete(param);
+        changed = true;
+      }
+    }
+    if (changed) {
+      window.history.replaceState({}, "", url.toString());
+    }
+  };
 
+  const finishInit = () => {
+    if (!initialized.current) {
+      initialized.current = true;
+      stripAuthParamsFromUrl();
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      try {
-        if (session?.user) {
-          await fetchProfile(session.user.id);
-        } else {
-          setProfile(null);
-        }
-      } catch (err) {
-        console.error("Auth state change handler error:", err);
-      } finally {
-        if (!settled) {
-          settled = true;
-        }
-        setLoading(false);
+      if (session?.user) {
+        fetchProfile(session.user.id).catch(console.error).finally(finishInit);
+      } else {
+        setProfile(null);
+        finishInit();
       }
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!settled) {
-        settled = true;
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) fetchProfile(session.user.id);
-        setLoading(false);
+    supabase.auth.getSession()
+      .then(async ({ data: { session } }) => {
+        if (session?.user) {
+          const valid = await verifySession(session);
+          if (!valid) {
+            setSession(null);
+            setUser(null);
+            setProfile(null);
+            finishInit();
+            return;
+          }
+          setSession(session);
+          setUser(session.user);
+          fetchProfile(session.user.id).catch(console.error).finally(finishInit);
+        } else {
+          finishInit();
+        }
+      })
+      .catch((err) => {
+        console.error("getSession error:", err);
+        clearStaleSession();
+        finishInit();
+      });
+
+    const timeoutId = setTimeout(() => {
+      if (!initialized.current) {
+        console.warn("Auth init timed out, clearing stale session");
+        clearStaleSession();
+        finishInit();
       }
-    }).catch((err) => {
-      console.error("getSession error:", err);
-      if (!settled) {
-        settled = true;
-      }
-      setLoading(false);
-    });
+    }, LOADING_TIMEOUT_MS);
 
     return () => {
       subscription.unsubscribe();
+      clearTimeout(timeoutId);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const signOut = async () => {

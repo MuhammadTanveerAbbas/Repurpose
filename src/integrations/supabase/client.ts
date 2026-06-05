@@ -20,23 +20,8 @@ if (!supabaseInstance) {
         storageKey: "repurpose-auth",
         flowType: "pkce",
       },
-      global: {
-        fetch: (url, options = {}) => {
-          return fetch(url, {
-            ...options,
-            signal: AbortSignal.timeout(15000), // 15 second timeout
-          });
-        },
-      },
     },
   );
-
-  // Clear stale session storage only on explicit sign out
-  supabaseInstance.auth.onAuthStateChange((event) => {
-    if (event === "SIGNED_OUT") {
-      localStorage.removeItem("repurpose-auth");
-    }
-  });
 }
 
 export const supabase = supabaseInstance;
