@@ -4,7 +4,7 @@ export interface Plan {
   id: PlanId;
   name: string;
   price: number;
-  generatonsPerMonth: number;
+  generationsPerMonth: number;
   features: string[];
 }
 
@@ -13,7 +13,7 @@ export const PLANS: Record<PlanId, Plan> = {
     id: "free",
     name: "Free",
     price: 0,
-    generatonsPerMonth: 5,
+    generationsPerMonth: 5,
     features: [
       "5 generations per month",
       "All 4 input modes",
@@ -27,7 +27,7 @@ export const PLANS: Record<PlanId, Plan> = {
     id: "creator",
     name: "Creator",
     price: 4900,
-    generatonsPerMonth: 9999,
+    generationsPerMonth: 9999,
     features: [
       "Unlimited generations",
       "All 4 input modes",
@@ -41,21 +41,19 @@ export const PLANS: Record<PlanId, Plan> = {
     id: "pro",
     name: "Pro",
     price: 9900,
-    generatonsPerMonth: 9999,
+    generationsPerMonth: 9999,
     features: [
       "Everything in Creator",
       "Full project history",
       "Re-open past sessions",
-      "Priority support",
-      "Notion & Google Docs export",
-      "API access",
+      "Markdown export (.md)",
     ],
   },
 };
 
 export const getPlanLimit = (planId: string): number => {
   const plan = PLANS[planId as PlanId];
-  return plan?.generatonsPerMonth ?? 5;
+  return plan?.generationsPerMonth ?? 5;
 };
 
 export const isUnlimited = (limit: number): boolean => limit >= 9999;

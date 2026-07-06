@@ -9,7 +9,7 @@ export const getStripe = (): Stripe => {
       throw new Error("Missing STRIPE_SECRET_KEY environment variable");
     }
     stripeInstance = new Stripe(secretKey, {
-      apiVersion: "2025-02-24.acacia",
+      apiVersion: "2026-03-25.dahlia",
       typescript: true,
     });
   }

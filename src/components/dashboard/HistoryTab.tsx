@@ -3,24 +3,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { FORMAT_ICONS } from "@/lib/groq";
 import type {
   ContentFormat,
-  ContentStrategy,
-  GeneratedOutput,
 } from "@/lib/groq";
 import { Trash2, ChevronDown, ChevronUp, FileText } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-
-type Project = {
-  id: string;
-  title: string;
-  input_mode: string;
-  created_at: string;
-  strategy: ContentStrategy;
-  outputs: Record<string, string>;
-};
 
 const INPUT_MODE_ICONS: Record<string, string> = {
   idea: "💡",
@@ -33,6 +22,8 @@ export const HistoryTab = () => {
   const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ["history", user?.id],
@@ -51,15 +42,18 @@ export const HistoryTab = () => {
     enabled: !!user,
   });
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Delete this project?")) return;
-    const { error } = await supabase.from("projects").delete().eq("id", id);
+  const handleDelete = async () => {
+    if (!deleteTargetId) return;
+    setDeleting(true);
+    const { error } = await supabase.from("projects").delete().eq("id", deleteTargetId);
     if (error) {
       toast.error("Failed to delete project.");
     } else {
       toast.success("Project deleted.");
       queryClient.invalidateQueries({ queryKey: ["history", user?.id] });
     }
+    setDeleting(false);
+    setDeleteTargetId(null);
   };
 
   const isPro = profile?.plan === "pro";
@@ -80,7 +74,7 @@ export const HistoryTab = () => {
           </p>
           <Button
             size="sm"
-            className="rounded-xl bg-[#E8743A] hover:bg-[#D4632A] text-white font-sans font-semibold shadow-brand"
+            className="rounded-xl bg-primary hover:bg-primary/90 text-white font-sans font-semibold shadow-brand"
             onClick={() => (window.location.href = "/pricing")}
           >
             Upgrade to Pro
@@ -153,8 +147,9 @@ export const HistoryTab = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => handleDelete(project.id)}
-                  className="h-7 w-7 p-0 rounded-lg text-stone-300 hover:text-red-400"
+                  onClick={() => setDeleteTargetId(project.id)}
+                  className="h-9 w-9 p-0 rounded-lg text-stone-300 hover:text-red-400"
+                  aria-label="Delete project"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
@@ -200,6 +195,16 @@ export const HistoryTab = () => {
           </div>
         );
       })}
+      <ConfirmDialog
+        open={deleteTargetId !== null}
+        onOpenChange={(open) => !open && setDeleteTargetId(null)}
+        title="Delete this project?"
+        description="This will permanently remove the project from your history."
+        confirmLabel={deleting ? "Deleting…" : "Delete"}
+        cancelLabel="Cancel"
+        variant="destructive"
+        onConfirm={handleDelete}
+      />
     </div>
   );
 };

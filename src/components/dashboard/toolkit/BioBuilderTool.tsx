@@ -2,9 +2,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { callGroq } from "@/lib/groq";
-import { Copy, CheckCircle2, Sparkles } from "lucide-react";
+import { callGroq, checkAndIncrementUsage } from "@/lib/groq";
+import { Copy, CheckCircle2 } from "lucide-react";
+import { sanitizeOutput } from "@/lib/sanitize";
 import { toast } from "sonner";
 
 interface BioOutputs {
@@ -36,6 +36,15 @@ export const BioBuilderTool = () => {
     }
     setLoading(true);
     setOutput(null);
+
+    try {
+      await checkAndIncrementUsage();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Usage limit reached");
+      setLoading(false);
+      return;
+    }
+
     try {
       const system = `You are a world-class personal branding copywriter. You've written bios for founders who've gone viral, raised funding, and built audiences.
 
@@ -99,13 +108,22 @@ What makes me unique: ${answers[4]}`;
     setTimeout(() => setCopied(null), 2000);
   };
 
-  const outputs = output ? [
-    { key: "linkedin", label: "💼 LinkedIn Bio", value: output.linkedin },
-    { key: "twitter", label: "🐦 Twitter/X Bio", value: output.twitter, charLimit: 160 },
-    { key: "tagline", label: "✨ Website Tagline", value: output.tagline, charLimit: 60 },
-    { key: "instagram", label: "📸 Instagram Bio", value: output.instagram, charLimit: 150 },
-    { key: "website_hero", label: "🚀 Hero Headline", value: output.website_hero, charLimit: 80 },
-  ] as const : [];
+  type BioOutputItem = {
+    key: keyof BioOutputs;
+    label: string;
+    value: string;
+    charLimit?: number;
+  };
+
+  const outputs: BioOutputItem[] = output
+    ? [
+        { key: "linkedin", label: "💼 LinkedIn Bio", value: output.linkedin },
+        { key: "twitter", label: "🐦 Twitter/X Bio", value: output.twitter, charLimit: 160 },
+        { key: "tagline", label: "✨ Website Tagline", value: output.tagline, charLimit: 60 },
+        { key: "instagram", label: "📸 Instagram Bio", value: output.instagram, charLimit: 150 },
+        { key: "website_hero", label: "🚀 Hero Headline", value: output.website_hero, charLimit: 80 },
+      ]
+    : [];
 
   return (
     <div className="bg-white border border-stone-100 rounded-2xl p-5 shadow-sm space-y-5">
@@ -141,7 +159,7 @@ What makes me unique: ${answers[4]}`;
       <Button
         onClick={handleGenerate}
         disabled={loading}
-        className="w-full h-10 rounded-xl bg-[#E8743A] hover:bg-[#D4632A] text-white font-sans font-semibold shadow-brand transition-all active:scale-[0.98]"
+        className="w-full h-10 rounded-xl bg-primary hover:bg-primary/90 text-white font-sans font-semibold shadow-brand transition-all active:scale-[0.98]"
       >
         {loading ? "Building bios..." : "Build my bios →"}
       </Button>
@@ -175,7 +193,7 @@ What makes me unique: ${answers[4]}`;
                 </div>
               </div>
               <p className="font-sans text-sm text-stone-800 leading-relaxed">
-                {value}
+                {sanitizeOutput(value)}
               </p>
             </div>
           ))}

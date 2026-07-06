@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 40 30% 97%;
+    --background: 38 8% 96%;
     --foreground: 20 15% 12%;
 
     --card: 0 0% 100%;
@@ -14,7 +14,7 @@
     --popover-foreground: 20 15% 12%;
 
     /* Brand: amber-orange */
-    --primary: 25 85% 52%;
+    --primary: 20 79% 57%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 38 25% 94%;
@@ -70,17 +70,25 @@
     height: auto;
   }
 
-  /* Hide scrollbar across all browsers while keeping scroll functionality */
+  /* Subtle scrollbar style — visible but minimal */
   * {
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE / Edge */
+    scrollbar-width: thin;
+    scrollbar-color: hsl(35 15% 75%) transparent;
   }
   *::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
+    width: 6px;
+    height: 6px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: hsl(35 15% 75%);
+    border-radius: 3px;
   }
 
   body {
-    background-color: #F8F5F0;
+    background-color: hsl(var(--background));
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
     @apply text-foreground antialiased;
     font-family: 'Plus Jakarta Sans', sans-serif;

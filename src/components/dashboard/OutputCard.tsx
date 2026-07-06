@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { FORMAT_ICONS, FORMAT_CHAR_LIMITS } from "@/lib/groq";
 import type { GeneratedOutput } from "@/lib/groq";
+import { sanitizeOutput } from "@/lib/sanitize";
 import { Copy, RefreshCw, CheckCircle2, Sparkles } from "lucide-react";
 
 interface Props {
@@ -133,9 +134,10 @@ export const OutputCard = ({
       ) : (
         <>
           <Textarea
-            value={output.content}
+            value={sanitizeOutput(output.content)}
             onChange={(e) => onUpdateContent(e.target.value)}
             rows={8}
+            aria-label={`${output.format} content`}
             className="rounded-xl border-stone-200 bg-stone-50 text-stone-800 text-sm font-sans resize-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400"
           />
           <div className="flex justify-between mt-1.5">

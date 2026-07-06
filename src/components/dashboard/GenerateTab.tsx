@@ -8,9 +8,11 @@ import type {
   ContentFormat,
   GeneratedOutput,
 } from "@/lib/groq";
-import { analyzeContent, generateAllFormats } from "@/lib/groq";
+import { analyzeContent, generateAllFormats, generateFormat, checkAndIncrementUsage } from "@/lib/groq";
+import { getPlanLimit } from "@/config/plans";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { toast } from "sonner";
 
 type Step = "input" | "strategy" | "outputs";
@@ -18,6 +20,7 @@ type Step = "input" | "strategy" | "outputs";
 export const GenerateTab = () => {
   const { user, profile, refreshProfile } = useAuth();
   const [step, setStep] = useState<Step>("input");
+  const [showStartNewDialog, setShowStartNewDialog] = useState(false);
   const [inputMode, setInputMode] = useState<InputMode>("idea");
   const [rawInput, setRawInput] = useState("");
   const [strategy, setStrategy] = useState<ContentStrategy | null>(null);
@@ -26,12 +29,7 @@ export const GenerateTab = () => {
   const [analyzingLoading, setAnalyzingLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
 
-  const planLimits: Record<string, number> = {
-    free: 5,
-    creator: 9999,
-    pro: 9999,
-  };
-  const limit = planLimits[profile?.plan ?? "free"] ?? 5;
+  const limit = getPlanLimit(profile?.plan ?? "free");
   const used = profile?.projects_used_this_month ?? 0;
 
   const handleAnalyze = async (mode: InputMode, input: string) => {
@@ -58,6 +56,14 @@ export const GenerateTab = () => {
 
   const handleGenerate = useCallback(async () => {
     if (!strategy || selectedFormats.length === 0) return;
+
+    try {
+      await checkAndIncrementUsage();
+      await refreshProfile();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Usage limit reached.");
+      return;
+    }
 
     setGenerating(true);
     const initialOutputs: GeneratedOutput[] = selectedFormats.map((f) => ({
@@ -99,17 +105,12 @@ export const GenerateTab = () => {
         });
 
         if (!error) {
-          const { error: rpcError } = await supabase.rpc(
-            "increment_projects_used",
-            { user_id: user.id },
-          );
-          if (rpcError) {
-            console.error("Failed to increment usage counter:", rpcError);
-          }
           await refreshProfile();
+        } else {
+          toast.error("Couldn't save this session to your history.");
         }
       } catch {
-        // Non-fatal
+        toast.error("Couldn't save this session to your history.");
       }
     }
   }, [strategy, selectedFormats, rawInput, user, inputMode, refreshProfile]);
@@ -120,7 +121,6 @@ export const GenerateTab = () => {
       prev.map((o) => (o.format === format ? { ...o, content: "" } : o)),
     );
     try {
-      const { generateFormat } = await import("@/lib/groq");
       const content = await generateFormat(format, strategy, rawInput);
       setOutputs((prev) =>
         prev.map((o) => (o.format === format ? { ...o, content } : o)),
@@ -150,7 +150,11 @@ export const GenerateTab = () => {
   };
 
   const handleStartNew = () => {
-    if (!confirm("Start over? Your current outputs will be cleared.")) return;
+    setShowStartNewDialog(true);
+  };
+
+  const confirmStartNew = () => {
+    setShowStartNewDialog(false);
     setStep("input");
     setRawInput("");
     setStrategy(null);
@@ -193,6 +197,15 @@ export const GenerateTab = () => {
           onStartNew={handleStartNew}
         />
       )}
+
+      <ConfirmDialog
+        open={showStartNewDialog}
+        onOpenChange={setShowStartNewDialog}
+        title="Start over?"
+        description="Your current outputs will be cleared."
+        confirmLabel="Start over"
+        onConfirm={confirmStartNew}
+      />
     </div>
   );
 };

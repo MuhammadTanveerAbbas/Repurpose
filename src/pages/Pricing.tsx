@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
-import { motion, useInView } from "framer-motion";
-import { useRef, useState } from "react";
+import { motion } from "framer-motion";
+import { lazy, Suspense, useState } from "react";
 import {
   Check,
   ArrowRight,
@@ -16,39 +16,13 @@ import { Navbar } from "@/components/Navbar";
 import { FadeUp } from "@/components/FadeUp";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
-import { getStripe } from "@/lib/stripe/client";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-  RadarChart,
-  Radar,
-  PolarGrid,
-  PolarAngleAxis,
-} from "recharts";
-
-// --- Data ---
-const valueData = [
-  { label: "Free", drafts: 5, color: "#D1C4B0" },
-  { label: "Creator", drafts: 999, color: "#E8743A" },
-  { label: "Pro", drafts: 999, color: "#D4632A" },
-];
-
-const radarData = [
-  { feature: "Formats", free: 100, creator: 100, pro: 100 },
-  { feature: "Inputs", free: 100, creator: 100, pro: 100 },
-  { feature: "Generations", free: 20, creator: 100, pro: 100 },
-  { feature: "Exports", free: 60, creator: 80, pro: 100 },
-  { feature: "History", free: 0, creator: 0, pro: 100 },
-];
-
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { PlanId } from "@/config/plans";
+
+const PricingCharts = lazy(() =>
+  import("@/components/PricingCharts").then((m) => ({ default: m.PricingCharts })),
+);
 
 const plans = [
   {
@@ -109,11 +83,10 @@ const plans = [
       { text: "Everything in Creator", included: true },
       { text: "Full project history", included: true },
       { text: "Re-open past sessions", included: true },
-      { text: "Priority support", included: true },
-      { text: "Notion & Google Docs export", included: true },
-      { text: "API access (coming later)", included: true },
-      { text: "Custom tone instructions", included: false },
-      { text: "White-label exports", included: false },
+      { text: "Markdown export (.md)", included: true },
+      { text: "Notion & Google Docs export", included: false },
+      { text: "API access", included: false },
+      { text: "Priority support", included: false },
     ],
     cta: "Subscribe",
   },
@@ -145,8 +118,6 @@ const faqs = [
 const Pricing = () => {
   const { profile, user } = useAuth();
   const navigate = useNavigate();
-  const chartRef = useRef<HTMLDivElement>(null);
-  const chartInView = useInView(chartRef, { once: true, margin: "-80px" });
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
 
   const handleCheckout = async (planId: string) => {
@@ -158,7 +129,6 @@ const Pricing = () => {
     setCheckoutLoading(planId);
 
     try {
-      const { supabase } = await import("@/integrations/supabase/client");
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token ?? "";
 
@@ -190,7 +160,7 @@ const Pricing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F5F0]">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
       {/* Hero */}
@@ -234,7 +204,7 @@ const Pricing = () => {
                 className={cn(
                   "relative rounded-2xl border flex flex-col overflow-hidden",
                   plan.highlighted
-                    ? "bg-[#E8743A] border-[#E8743A] shadow-brand lg:scale-[1.03]"
+                    ? "bg-primary border-primary shadow-brand lg:scale-[1.03]"
                     : plan.comingSoon
                       ? "bg-white border-stone-200 opacity-80"
                       : "bg-white border-stone-100 shadow-sm",
@@ -377,7 +347,7 @@ const Pricing = () => {
                     <Link to={user ? "/dashboard" : "/signup"}>
                       <Button
                         size="sm"
-                        className="w-full rounded-xl font-sans font-semibold bg-[#E8743A] hover:bg-[#D4632A] text-white shadow-brand transition-all active:scale-[0.98]"
+                        className="w-full rounded-xl font-sans font-semibold bg-primary hover:bg-primary/90 text-white shadow-brand transition-all active:scale-[0.98]"
                       >
                         {user ? "Go to dashboard" : plan.cta} <ArrowRight className="h-3.5 w-3.5" />
                       </Button>
@@ -390,8 +360,8 @@ const Pricing = () => {
                       className={cn(
                         "w-full rounded-xl font-sans font-semibold gap-1.5 transition-all active:scale-[0.98]",
                         plan.highlighted
-                          ? "bg-white text-[#E8743A] hover:bg-stone-100"
-                          : "bg-[#E8743A] hover:bg-[#D4632A] text-white shadow-brand",
+                          ? "bg-white text-primary hover:bg-stone-100"
+                          : "bg-primary hover:bg-primary/90 text-white shadow-brand",
                       )}
                     >
                       {checkoutLoading === plan.id ? (
@@ -412,186 +382,23 @@ const Pricing = () => {
         </div>
       </section>
 
-      {/* Animated charts section */}
-      <section className="bg-white border-t border-stone-200" ref={chartRef}>
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 py-16 sm:py-20">
-          <FadeUp>
-            <p className="font-sans text-xs font-semibold tracking-[0.15em] text-amber-600 uppercase mb-3">
-              Value at a glance
-            </p>
-            <h2 className="font-display text-3xl text-stone-900 mb-3">
-              See what you get
-            </h2>
-            <p className="font-sans text-sm text-stone-500 mb-12 max-w-lg leading-relaxed">
-              A quick visual breakdown of drafts per month and feature coverage
-              across plans.
-            </p>
-          </FadeUp>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Bar chart: drafts per month */}
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={chartInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="rounded-2xl bg-[#F8F5F0] border border-stone-100 p-6"
-            >
-              <p className="font-sans text-sm font-semibold text-stone-800 mb-1">
-                Max drafts per month
-              </p>
-              <p className="font-sans text-xs text-stone-400 mb-6">
-                Projects × formats per plan
-              </p>
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart
-                  data={valueData}
-                  margin={{ top: 4, right: 4, left: -24, bottom: 0 }}
-                  barSize={44}
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="#EDE8E0"
-                    vertical={false}
-                  />
-                  <XAxis
-                    dataKey="label"
-                    tick={{
-                      fontSize: 11,
-                      fill: "#A8A29E",
-                      fontFamily: "Plus Jakarta Sans",
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{
-                      fontSize: 11,
-                      fill: "#A8A29E",
-                      fontFamily: "Plus Jakarta Sans",
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      background: "#fff",
-                      border: "1px solid #E7E0D8",
-                      borderRadius: 12,
-                      fontSize: 12,
-                      fontFamily: "Plus Jakarta Sans",
-                    }}
-                    labelStyle={{ color: "#57534E", fontWeight: 600 }}
-                    formatter={(v: number) => [`${v} drafts`, "Max/month"]}
-                    cursor={{ fill: "rgba(232,116,58,0.05)" }}
-                  />
-                  <Bar
-                    dataKey="drafts"
-                    radius={[8, 8, 0, 0]}
-                    isAnimationActive={chartInView}
-                    animationDuration={1000}
-                    animationEasing="ease-out"
-                  >
-                    {valueData.map((entry, i) => (
-                      <Cell key={i} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-              <p className="font-sans text-xs text-stone-400 mt-3 text-center">
-                Free: 5 generations/mo &nbsp;|&nbsp; Creator & Pro: unlimited
-              </p>
-            </motion.div>
-
-            {/* Radar chart: feature coverage */}
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={chartInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="rounded-2xl bg-[#F8F5F0] border border-stone-100 p-6"
-            >
-              <p className="font-sans text-sm font-semibold text-stone-800 mb-1">
-                Feature coverage by plan
-              </p>
-              <p className="font-sans text-xs text-stone-400 mb-4">
-                Relative score across key dimensions
-              </p>
-              <ResponsiveContainer width="100%" height={210}>
-                <RadarChart
-                  data={radarData}
-                  margin={{ top: 8, right: 24, left: 24, bottom: 8 }}
-                >
-                  <PolarGrid stroke="#E7E0D8" />
-                  <PolarAngleAxis
-                    dataKey="feature"
-                    tick={{
-                      fontSize: 11,
-                      fill: "#A8A29E",
-                      fontFamily: "Plus Jakarta Sans",
-                    }}
-                  />
-                  <Radar
-                    name="Free"
-                    dataKey="free"
-                    stroke="#D1C4B0"
-                    fill="#D1C4B0"
-                    fillOpacity={0.25}
-                    isAnimationActive={chartInView}
-                    animationDuration={1000}
-                  />
-                  <Radar
-                    name="Creator"
-                    dataKey="creator"
-                    stroke="#E8743A"
-                    fill="#E8743A"
-                    fillOpacity={0.3}
-                    isAnimationActive={chartInView}
-                    animationDuration={1200}
-                  />
-                  <Radar
-                    name="Pro"
-                    dataKey="pro"
-                    stroke="#D4632A"
-                    fill="#D4632A"
-                    fillOpacity={0.15}
-                    isAnimationActive={chartInView}
-                    animationDuration={1400}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      background: "#fff",
-                      border: "1px solid #E7E0D8",
-                      borderRadius: 12,
-                      fontSize: 12,
-                      fontFamily: "Plus Jakarta Sans",
-                    }}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
-              {/* Legend */}
-              <div className="flex items-center justify-center gap-5 mt-2">
-                {[
-                  { label: "Free", color: "#D1C4B0" },
-                  { label: "Creator", color: "#E8743A" },
-                  { label: "Pro", color: "#D4632A" },
-                ].map((l) => (
-                  <div key={l.label} className="flex items-center gap-1.5">
-                    <span
-                      className="h-2.5 w-2.5 rounded-full"
-                      style={{ background: l.color }}
-                    />
-                    <span className="font-sans text-xs text-stone-500">
-                      {l.label}
-                    </span>
-                  </div>
-                ))}
+      <Suspense
+        fallback={
+          <section className="bg-white border-t border-stone-200">
+            <div className="mx-auto max-w-5xl px-4 sm:px-6 py-16 sm:py-20">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="h-72 rounded-2xl bg-stone-100 animate-pulse" />
+                <div className="h-72 rounded-2xl bg-stone-100 animate-pulse" />
               </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
+            </div>
+          </section>
+        }
+      >
+        <PricingCharts />
+      </Suspense>
 
       {/* FAQ */}
-      <section className="bg-[#F8F5F0] border-t border-stone-200">
+      <section className="bg-background border-t border-stone-200">
         <div className="mx-auto max-w-2xl px-4 sm:px-6 py-16 sm:py-20">
           <FadeUp>
             <h2 className="font-display text-3xl text-stone-900 mb-10 text-center">

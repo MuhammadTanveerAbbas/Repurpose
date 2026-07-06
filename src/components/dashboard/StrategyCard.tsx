@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { ALL_FORMATS, FORMAT_ICONS, FORMAT_PLATFORM_TIPS } from "@/lib/groq";
 import type { ContentStrategy, ContentFormat } from "@/lib/groq";
 import { ArrowLeft, Lightbulb, Target, Zap, MessageCircle } from "lucide-react";
+import { sanitizeOutput } from "@/lib/sanitize";
 
 interface Props {
   strategy: ContentStrategy;
@@ -47,8 +48,8 @@ export const StrategyCard = ({
             </p>
           </div>
           <p className="font-sans text-sm text-stone-800 font-medium leading-relaxed">
-            {strategy.core_message}
-          </p>
+            {sanitizeOutput(strategy.core_message)}
+            </p>
         </div>
 
         {/* Strategy grid */}
@@ -58,7 +59,7 @@ export const StrategyCard = ({
               Audience
             </p>
             <p className="font-sans text-sm text-stone-800 leading-relaxed">
-              {strategy.audience}
+              {sanitizeOutput(strategy.audience)}
             </p>
           </div>
           <div className="bg-stone-50 rounded-xl p-4">
@@ -66,7 +67,7 @@ export const StrategyCard = ({
               Tone
             </p>
             <p className="font-sans text-sm text-stone-800 font-medium">
-              {strategy.tone}
+              {sanitizeOutput(strategy.tone)}
             </p>
           </div>
 
@@ -81,7 +82,7 @@ export const StrategyCard = ({
               <div className="flex flex-wrap gap-1.5">
                 {strategy.hook_ideas.map((hook, i) => (
                   <span key={i} className="font-sans text-xs bg-white border border-stone-200 rounded-lg px-2.5 py-1 text-stone-700">
-                    {hook}
+                    {sanitizeOutput(hook)}
                   </span>
                 ))}
               </div>
@@ -99,7 +100,7 @@ export const StrategyCard = ({
               <div className="flex flex-wrap gap-1">
                 {strategy.emotional_triggers.map((t, i) => (
                   <span key={i} className="font-sans text-xs bg-amber-50 text-amber-700 rounded-full px-2 py-0.5">
-                    {t}
+                    {sanitizeOutput(t)}
                   </span>
                 ))}
               </div>
@@ -117,7 +118,7 @@ export const StrategyCard = ({
               <div className="flex flex-wrap gap-1">
                 {strategy.content_pillars.map((p, i) => (
                   <span key={i} className="font-sans text-xs bg-blue-50 text-blue-700 rounded-full px-2 py-0.5">
-                    {p}
+                    {sanitizeOutput(p)}
                   </span>
                 ))}
               </div>
@@ -131,8 +132,8 @@ export const StrategyCard = ({
             Growth Strategy
           </p>
           <p className="font-sans text-sm text-stone-700 leading-relaxed">
-            {strategy.strategy_note}
-          </p>
+            {sanitizeOutput(strategy.strategy_note)}
+            </p>
         </div>
 
         {/* Format selector */}
@@ -152,7 +153,7 @@ export const StrategyCard = ({
                   className={cn(
                     "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium font-sans border transition-all",
                     isSelected
-                      ? "bg-[#E8743A] border-[#E8743A] text-white"
+                      ? "bg-primary border-primary text-white"
                       : "bg-white border-stone-200 text-stone-600 hover:border-stone-300",
                     isRecommended &&
                       !isSelected &&
@@ -197,7 +198,7 @@ export const StrategyCard = ({
         <Button
           onClick={onGenerate}
           disabled={loading || selectedFormats.length === 0}
-          className="w-full h-11 rounded-xl bg-[#E8743A] hover:bg-[#D4632A] text-white font-sans font-semibold shadow-brand transition-all active:scale-[0.98]"
+          className="w-full h-11 rounded-xl bg-primary hover:bg-primary/90 text-white font-sans font-semibold shadow-brand transition-all active:scale-[0.98]"
         >
           {loading
             ? "Generating..."

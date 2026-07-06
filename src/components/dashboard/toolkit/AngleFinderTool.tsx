@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { callGroq, FORMAT_ICONS } from "@/lib/groq";
+import { callGroq, checkAndIncrementUsage, FORMAT_ICONS } from "@/lib/groq";
 import type { ContentFormat } from "@/lib/groq";
 import { Copy, CheckCircle2, Sparkles } from "lucide-react";
+import { sanitizeOutput } from "@/lib/sanitize";
 import { toast } from "sonner";
 
 interface Angle {
@@ -28,6 +29,15 @@ export const AngleFinderTool = () => {
     }
     setLoading(true);
     setAngles([]);
+
+    try {
+      await checkAndIncrementUsage();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Usage limit reached");
+      setLoading(false);
+      return;
+    }
+
     try {
       const system = `You are a senior content strategist who plans content for 7-figure creators and founders.
 
@@ -107,7 +117,7 @@ Return ONLY valid JSON:
           <Button
             onClick={handleGenerate}
             disabled={loading}
-            className="h-10 px-4 rounded-xl bg-[#E8743A] hover:bg-[#D4632A] text-white font-sans font-semibold shadow-brand shrink-0 transition-all active:scale-[0.98]"
+            className="h-10 px-4 rounded-xl bg-primary hover:bg-primary/90 text-white font-sans font-semibold shadow-brand shrink-0 transition-all active:scale-[0.98]"
           >
             {loading ? "..." : "Find angles"}
           </Button>
@@ -145,7 +155,7 @@ Return ONLY valid JSON:
                       {angle.description}
                     </p>
                     <p className="font-sans text-sm text-stone-800 leading-relaxed italic border-l-2 border-amber-300 pl-3">
-                      "{angle.hook}"
+                      "{sanitizeOutput(angle.hook)}"
                     </p>
                     {angle.distribution_advice && (
                       <div className="mt-2 flex items-start gap-1.5">

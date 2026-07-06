@@ -117,7 +117,7 @@ const Index = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   return (
-    <div className="min-h-screen bg-[#F8F5F0]">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
       {/* Hero */}
@@ -133,7 +133,7 @@ const Index = () => {
             </p>
             <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-semibold text-stone-900 leading-tight tracking-tight mb-5 text-balance">
               Give it anything.{" "}
-              <span className="text-[#E8743A]">Get content worth posting.</span>
+              <span className="text-primary">Get content worth posting.</span>
             </h1>
             <p className="font-sans text-lg text-stone-500 leading-relaxed mb-8 max-w-lg">
               Drop in a rough idea, a transcript, a YouTube URL, or a pain
@@ -144,7 +144,7 @@ const Index = () => {
               <Link to="/signup">
                 <Button
                   size="lg"
-                  className="gap-2 text-base h-12 px-6 rounded-xl bg-[#E8743A] hover:bg-[#D4632A] text-white font-sans font-semibold shadow-brand hover:shadow-[0_6px_20px_rgba(232,116,58,0.4)] transition-all active:scale-[0.98]"
+                  className="gap-2 text-base h-12 px-6 rounded-xl bg-primary hover:bg-primary/90 text-white font-sans font-semibold shadow-brand hover:shadow-[0_6px_20px_rgba(232,116,58,0.4)] transition-all active:scale-[0.98]"
                 >
                   Start free <ArrowRight className="h-4 w-4" />
                 </Button>
@@ -210,7 +210,7 @@ const Index = () => {
                       ].map((f) => (
                         <span
                           key={f}
-                          className="text-[11px] px-2 py-0.5 rounded-full bg-[#E8743A] text-white font-sans"
+                          className="text-[11px] px-2 py-0.5 rounded-full bg-primary text-white font-sans"
                         >
                           {f}
                         </span>
@@ -283,7 +283,7 @@ const Index = () => {
       </section>
 
       {/* Input modes */}
-      <section className="bg-[#F8F5F0] border-t border-stone-200">
+      <section className="bg-background border-t border-stone-200">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 py-20">
           <FadeUp>
             <p className="font-sans text-xs font-semibold tracking-[0.15em] text-amber-600 uppercase mb-3">
@@ -372,11 +372,11 @@ const Index = () => {
             <div className="space-y-0">
               {formats.map((f, i) => (
                 <FadeUp key={f.label} delay={i * 50}>
-                  <div className="flex items-center justify-between py-3 px-4 border-b border-stone-100 last:border-b-0 group hover:bg-stone-50 rounded-xl transition-all cursor-default">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4 py-3 px-4 border-b border-stone-100 last:border-b-0 group hover:bg-stone-50 rounded-xl transition-all cursor-default">
                     <span className="font-sans font-semibold text-sm text-stone-800 flex items-center gap-2">
-                      <span>{f.icon}</span> {f.label}
+                      <span aria-hidden="true">{f.icon}</span> {f.label}
                     </span>
-                    <span className="font-sans text-xs text-stone-400 group-hover:text-stone-600 transition-colors">
+                    <span className="font-sans text-xs text-stone-400 group-hover:text-stone-600 transition-colors sm:text-right">
                       {f.detail}
                     </span>
                   </div>
@@ -388,7 +388,7 @@ const Index = () => {
       </section>
 
       {/* What you get */}
-      <section className="bg-[#F8F5F0] border-t border-stone-200">
+      <section className="bg-background border-t border-stone-200">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 py-20">
           <FadeUp>
             <p className="font-sans text-xs font-semibold tracking-[0.15em] text-amber-600 uppercase mb-3">
@@ -459,7 +459,7 @@ const Index = () => {
                     <th className="p-4 text-center font-semibold text-stone-500">
                       Free
                     </th>
-                    <th className="p-4 text-center font-semibold bg-[#E8743A] text-white">
+                    <th className="p-4 text-center font-semibold bg-primary text-white">
                       Creator{" "}
                       <span className="text-xs font-normal opacity-80">
                         $49/mo
@@ -509,7 +509,7 @@ const Index = () => {
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="bg-[#F8F5F0] border-t border-stone-200">
+      <section id="faq" className="bg-background border-t border-stone-200">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 py-20">
           <FadeUp>
             <h2 className="font-display text-3xl text-stone-900 mb-10 text-center">
@@ -524,6 +524,8 @@ const Index = () => {
               >
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  aria-expanded={openFaq === i}
+                  aria-controls={`faq-panel-${i}`}
                   className="w-full flex items-center justify-between py-5 text-left group"
                 >
                   <span className="font-sans font-semibold text-stone-900 text-sm pr-4">
@@ -535,6 +537,8 @@ const Index = () => {
                 </button>
                 {openFaq === i && (
                   <motion.div
+                    id={`faq-panel-${i}`}
+                    role="region"
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     className="pb-5"
@@ -571,7 +575,7 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-stone-200 bg-[#F8F5F0]">
+      <footer className="border-t border-stone-200 bg-background">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-16">
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-10 mb-14">
             <div className="col-span-2 md:col-span-1">

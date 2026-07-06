@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ALL_FORMATS, FORMAT_ICONS, FORMAT_CHAR_LIMITS, callGroq } from "@/lib/groq";
+import { ALL_FORMATS, FORMAT_ICONS, FORMAT_CHAR_LIMITS, callGroq, checkAndIncrementUsage } from "@/lib/groq";
 import type { ContentFormat } from "@/lib/groq";
 import { cn } from "@/lib/utils";
 import { Copy, CheckCircle2, RefreshCw, Sparkles } from "lucide-react";
+import { sanitizeOutput } from "@/lib/sanitize";
 import { toast } from "sonner";
 
 const FORMAT_SPECIFIC_RULES: Record<string, string> = {
@@ -41,6 +42,14 @@ export const RepurposerTool = () => {
     setLoading(true);
     setOutput("");
 
+    try {
+      await checkAndIncrementUsage();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Usage limit reached");
+      setLoading(false);
+      return;
+    }
+
     const targetRules = FORMAT_SPECIFIC_RULES[targetFormat] ?? "";
     const voiceInstruction = preserveVoice
       ? "CRITICAL: Preserve the author's original voice, tone, and perspective. It should feel like the same person wrote it."
@@ -71,7 +80,7 @@ Output only the final content, nothing else.`;
         system,
         `Source content (${sourceFormat}):\n\n${sourceContent}`,
       );
-      setOutput(result);
+      setOutput(sanitizeOutput(result));
     } catch {
       toast.error("Groq is being slow — try again.");
     } finally {
@@ -134,7 +143,7 @@ Output only the final content, nothing else.`;
                 className={cn(
                   "text-xs px-2.5 py-1.5 rounded-full border font-sans transition-all",
                   targetFormat === f
-                    ? "bg-[#E8743A] border-[#E8743A] text-white"
+                    ? "bg-primary border-primary text-white"
                     : "bg-white border-stone-200 text-stone-600 hover:border-stone-300",
                   sourceFormat === f && "opacity-30 pointer-events-none",
                 )}
@@ -152,7 +161,7 @@ Output only the final content, nothing else.`;
           onClick={() => setPreserveVoice(!preserveVoice)}
           className={cn(
             "h-5 w-9 rounded-full border transition-colors relative",
-            preserveVoice ? "bg-[#E8743A] border-[#E8743A]" : "bg-stone-200 border-stone-300",
+            preserveVoice ? "bg-primary border-primary" : "bg-stone-200 border-stone-300",
           )}
         >
           <div className={cn(
@@ -195,7 +204,7 @@ Output only the final content, nothing else.`;
       <Button
         onClick={handleRepurpose}
         disabled={loading}
-        className="w-full h-10 rounded-xl bg-[#E8743A] hover:bg-[#D4632A] text-white font-sans font-semibold shadow-brand transition-all active:scale-[0.98]"
+        className="w-full h-10 rounded-xl bg-primary hover:bg-primary/90 text-white font-sans font-semibold shadow-brand transition-all active:scale-[0.98]"
       >
         {loading ? "Converting..." : `Convert to ${targetFormat} →`}
       </Button>

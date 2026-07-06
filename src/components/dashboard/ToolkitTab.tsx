@@ -54,7 +54,7 @@ export const ToolkitTab = () => {
             className={cn(
               "flex flex-col items-start gap-1 p-3 rounded-2xl border text-left transition-all",
               activeTool === t.key
-                ? "bg-[#E8743A] border-[#E8743A] text-white shadow-brand"
+                ? "bg-primary border-primary text-white shadow-brand"
                 : "bg-white border-stone-100 text-stone-600 hover:border-stone-200 shadow-sm",
             )}
           >

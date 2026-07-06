@@ -31,7 +31,7 @@ export default async function handler(
       database: "connected",
       version: "1.0.0",
     });
-  } catch (err) {
+  } catch {
     return response.status(500).json({
       status: "unhealthy",
       timestamp: new Date().toISOString(),

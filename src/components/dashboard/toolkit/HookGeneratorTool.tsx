@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { callGroq } from "@/lib/groq";
-import { Copy, CheckCircle2, Sparkles } from "lucide-react";
+import { callGroq, checkAndIncrementUsage } from "@/lib/groq";
+import { Copy, CheckCircle2 } from "lucide-react";
+import { sanitizeOutput } from "@/lib/sanitize";
 import { toast } from "sonner";
 
 interface Hook {
@@ -36,6 +37,14 @@ export const HookGeneratorTool = () => {
     }
     setLoading(true);
     setHooks([]);
+
+    try {
+      await checkAndIncrementUsage();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Usage limit reached");
+      setLoading(false);
+      return;
+    }
 
     const categoryInstruction = category === "linkedin"
       ? "Optimize these hooks specifically for LinkedIn — first 3 lines must create curiosity gap. No clickbait."
@@ -135,7 +144,7 @@ Return ONLY valid JSON:
           <Button
             onClick={handleGenerate}
             disabled={loading}
-            className="h-10 px-4 rounded-xl bg-[#E8743A] hover:bg-[#D4632A] text-white font-sans font-semibold shadow-brand shrink-0 transition-all active:scale-[0.98]"
+            className="h-10 px-4 rounded-xl bg-primary hover:bg-primary/90 text-white font-sans font-semibold shadow-brand shrink-0 transition-all active:scale-[0.98]"
           >
             {loading ? "..." : "Generate"}
           </Button>
@@ -178,7 +187,7 @@ Return ONLY valid JSON:
                   )}
                 </div>
                 <p className="font-sans text-sm text-stone-800 leading-relaxed">
-                  {hook.text}
+                  {sanitizeOutput(hook.text)}
                 </p>
               </div>
               <button

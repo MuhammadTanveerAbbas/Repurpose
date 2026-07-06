@@ -8,6 +8,7 @@ import type {
 } from "@/lib/groq";
 import { FORMAT_ICONS, FORMAT_PLATFORM_TIPS } from "@/lib/groq";
 import { Download, Copy, RotateCcw, Sparkles } from "lucide-react";
+import { sanitizeOutput } from "@/lib/sanitize";
 import { toast } from "sonner";
 
 interface Props {
@@ -73,7 +74,7 @@ export const OutputsSection = ({
               : `${completedCount} of ${totalCount} ready`}
           </h2>
           <p className="font-sans text-xs text-stone-400 mt-0.5 line-clamp-1">
-            {strategy.core_message}
+            {sanitizeOutput(strategy.core_message)}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">

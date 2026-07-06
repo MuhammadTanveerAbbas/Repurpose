@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -7,41 +7,54 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrandIcon } from "@/components/BrandIcon";
 import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const signupSchema = z.object({
+  fullName: z.string().min(1, "Full name is required"),
+  email: z.string().email("Enter a valid email"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+type SignupForm = z.infer<typeof signupSchema>;
 
 const Signup = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError,
+  } = useForm<SignupForm>({
+    resolver: zodResolver(signupSchema),
+  });
 
   useEffect(() => {
     if (user) navigate("/dashboard", { replace: true });
   }, [user, navigate]);
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const onSubmit = async (data: SignupForm) => {
     const { error } = await supabase.auth.signUp({
-      email,
-      password,
+      email: data.email,
+      password: data.password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { full_name: fullName },
+        data: { full_name: data.fullName },
       },
     });
     if (error) {
-      toast.error(error.message);
+      setError("root", { message: error.message });
     } else {
       toast.success("Account created! Check your email to confirm.");
-      navigate("/dashboard");
+      navigate("/login", { replace: true });
     }
-    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F5F0] flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-12">
       <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-amber-50 to-transparent pointer-events-none" />
 
       <div className="w-full max-w-md relative">
@@ -63,7 +76,7 @@ const Signup = () => {
             Create your account
           </h1>
           <p className="font-sans text-sm text-stone-500 text-center mb-7">
-            Start with 3 free projects per month
+            Start with 5 free generations per month
           </p>
 
           {/* Google OAuth */}
@@ -105,7 +118,7 @@ const Signup = () => {
             <div className="flex-1 h-px bg-stone-200" />
           </div>
 
-          <form onSubmit={handleSignup} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-1.5">
               <Label
                 htmlFor="name"
@@ -116,11 +129,12 @@ const Signup = () => {
               <Input
                 id="name"
                 placeholder="Jane Doe"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
+                {...register("fullName")}
                 className="h-11 rounded-xl border-stone-200 bg-white text-stone-900 placeholder:text-stone-400 focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 font-sans"
               />
+              {errors.fullName && (
+                <p className="font-sans text-xs text-red-500 mt-1">{errors.fullName.message}</p>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label
@@ -133,11 +147,12 @@ const Signup = () => {
                 id="email"
                 type="email"
                 placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+                {...register("email")}
                 className="h-11 rounded-xl border-stone-200 bg-white text-stone-900 placeholder:text-stone-400 focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 font-sans"
               />
+              {errors.email && (
+                <p className="font-sans text-xs text-red-500 mt-1">{errors.email.message}</p>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label
@@ -150,19 +165,22 @@ const Signup = () => {
                 id="password"
                 type="password"
                 placeholder="Min 6 characters"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
+                {...register("password")}
                 className="h-11 rounded-xl border-stone-200 bg-white text-stone-900 placeholder:text-stone-400 focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 font-sans"
               />
+              {errors.password && (
+                <p className="font-sans text-xs text-red-500 mt-1">{errors.password.message}</p>
+              )}
             </div>
+            {errors.root && (
+              <p className="font-sans text-sm text-red-500 text-center">{errors.root.message}</p>
+            )}
             <Button
               type="submit"
-              className="w-full h-11 rounded-xl bg-[#E8743A] hover:bg-[#D4632A] text-white font-sans font-semibold shadow-brand hover:shadow-[0_6px_20px_rgba(232,116,58,0.4)] transition-all active:scale-[0.98]"
-              disabled={loading}
+              className="w-full h-11 rounded-xl bg-primary hover:bg-primary/90 text-white font-sans font-semibold shadow-brand hover:shadow-[0_6px_20px_rgba(232,116,58,0.4)] transition-all active:scale-[0.98]"
+              disabled={isSubmitting}
             >
-              {loading ? "Creating account…" : "Get started free"}
+              {isSubmitting ? "Creating account…" : "Get started free"}
             </Button>
           </form>
 

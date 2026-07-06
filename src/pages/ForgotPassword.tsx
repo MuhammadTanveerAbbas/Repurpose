@@ -29,7 +29,7 @@ const ForgotPassword = () => {
 
   if (sent) {
     return (
-      <div className="min-h-screen bg-[#F8F5F0] flex items-center justify-center px-4 py-12">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4 py-12">
         <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-amber-50 to-transparent pointer-events-none" />
         <div className="w-full max-w-md relative">
           <div className="bg-white border border-stone-200 rounded-2xl shadow-md p-8 text-center">
@@ -55,7 +55,7 @@ const ForgotPassword = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F5F0] flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-12">
       <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-amber-50 to-transparent pointer-events-none" />
 
       <div className="w-full max-w-md relative">
@@ -99,7 +99,7 @@ const ForgotPassword = () => {
             </div>
             <Button
               type="submit"
-              className="w-full h-11 rounded-xl bg-[#E8743A] hover:bg-[#D4632A] text-white font-sans font-semibold shadow-brand hover:shadow-[0_6px_20px_rgba(232,116,58,0.4)] transition-all active:scale-[0.98]"
+              className="w-full h-11 rounded-xl bg-primary hover:bg-primary/90 text-white font-sans font-semibold shadow-brand hover:shadow-[0_6px_20px_rgba(232,116,58,0.4)] transition-all active:scale-[0.98]"
               disabled={loading}
             >
               {loading ? "Sending…" : "Send reset link"}

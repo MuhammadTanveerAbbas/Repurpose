@@ -1,3 +1,9 @@
+import { supabase } from "@/integrations/supabase/client";
+import { getPlanLimit } from "@/config/plans";
+import { sanitizeInput } from "./sanitize";
+
+const GROQ_TIMEOUT_MS = 60_000;
+
 export type InputMode = "idea" | "transcript" | "youtube" | "pain_point";
 
 export type ContentFormat =
@@ -77,7 +83,6 @@ export const FORMAT_PLATFORM_TIPS: Record<ContentFormat, string> = {
 };
 
 const getAccessToken = async (): Promise<string> => {
-  const { supabase } = await import("@/integrations/supabase/client");
   const { data: { session } } = await supabase.auth.getSession();
   return session?.access_token ?? "";
 };
@@ -87,31 +92,68 @@ export const callGroq = async (
   userMessage: string,
 ): Promise<string> => {
   const token = await getAccessToken();
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), GROQ_TIMEOUT_MS);
 
-  const response = await fetch("/api/groq", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userMessage },
-      ],
-      temperature: 0.75,
-      max_tokens: 2000,
-    }),
-  });
+  try {
+    const response = await fetch("/api/groq", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: sanitizeInput(userMessage) },
+        ],
+        temperature: 0.75,
+        max_tokens: 2000,
+      }),
+      signal: controller.signal,
+    });
 
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(err.error ?? `AI service error (${response.status})`);
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error ?? `AI service error (${response.status})`);
+    }
+
+    const data = await response.json();
+    return data.choices[0]?.message?.content ?? "";
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error("AI request timed out. Try again.");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
+
+export const checkAndIncrementUsage = async (): Promise<void> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("plan, projects_used_this_month")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile) throw new Error("Profile not found");
+
+  const limit = getPlanLimit(profile.plan);
+  const used = profile.projects_used_this_month ?? 0;
+
+  if (used >= limit) {
+    throw new Error("Monthly generation limit reached. Upgrade to keep going.");
   }
 
-  const data = await response.json();
-  return data.choices[0]?.message?.content ?? "";
+  const { error } = await supabase.rpc("increment_projects_used", {
+    user_id: user.id,
+  });
+  if (error) throw new Error("Failed to update usage");
 };
 
 const STRATEGY_SYSTEM_PROMPT = `You are a world-class content strategist. Your job is to deeply analyze the user's input and produce a precise, actionable content strategy.

@@ -1,11 +1,9 @@
 import { getStripe } from "../_lib/stripe";
 import { verifyUser } from "../_lib/verify-auth";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseAdmin } from "../_lib/supabase-admin";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { z } from "zod";
 
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL ?? process.env.SUPABASE_URL ?? "";
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 const APP_URL = process.env.VITE_APP_URL ?? "http://localhost:8080";
 
 const PLAN_PRICE_MAP: Record<string, string | undefined> = {
@@ -53,7 +51,7 @@ export default async function handler(
 
   try {
     const stripe = getStripe();
-    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const supabaseAdmin = getSupabaseAdmin();
 
     const { data: profile } = await supabaseAdmin
       .from("profiles")

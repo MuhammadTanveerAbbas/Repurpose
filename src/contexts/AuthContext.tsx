@@ -1,33 +1,8 @@
-import { createContext, useEffect, useState, useRef, ReactNode } from "react";
-import { Session, User } from "@supabase/supabase-js";
+import { useEffect, useState, useRef, type ReactNode } from "react";
+import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { validateEnv } from "@/lib/env";
-
-type Profile = {
-  id: string;
-  full_name: string | null;
-  plan: string;
-  projects_used_this_month: number;
-  stripe_customer_id: string | null;
-};
-
-type AuthContextType = {
-  session: Session | null;
-  user: User | null;
-  profile: Profile | null;
-  loading: boolean;
-  signOut: () => Promise<void>;
-  refreshProfile: () => Promise<void>;
-};
-
-export const AuthContext = createContext<AuthContextType>({
-  session: null,
-  user: null,
-  profile: null,
-  loading: true,
-  signOut: async () => {},
-  refreshProfile: async () => {},
-});
+import { AuthContext, type Profile } from "@/contexts/auth-context";
 
 const LOADING_TIMEOUT_MS = 8_000;
 
@@ -45,7 +20,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const clearStaleSession = () => {
     try {
       localStorage.removeItem("repurpose-auth");
-    } catch {}
+    } catch {
+      // non-fatal
+    }
   };
 
   const fetchProfile = async (userId: string) => {
@@ -54,29 +31,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .select("id, full_name, plan, projects_used_this_month, stripe_customer_id")
       .eq("id", userId)
       .single();
-    
+
     if (error) {
-      if (error.code === 'PGRST116') {
+      if (error.code === "PGRST116") {
         const { data: newProfile, error: insertError } = await supabase
           .from("profiles")
-          .insert({ id: userId, full_name: null, plan: 'free', projects_used_this_month: 0 })
+          .insert({ id: userId, full_name: null, plan: "free", projects_used_this_month: 0 })
           .select("id, full_name, plan, projects_used_this_month, stripe_customer_id")
           .single();
-        
+
         if (!insertError && newProfile) {
-          setProfile(newProfile as Profile | null);
+          setProfile(newProfile as Profile);
         }
       }
     } else {
-      setProfile(data as Profile | null);
+      setProfile(data as Profile);
     }
   };
 
-  const verifySession = async (session: Session): Promise<boolean> => {
+  const verifySession = async (activeSession: Session): Promise<boolean> => {
     try {
-      const { error } = await supabase.auth.getUser(session.access_token);
+      const { error } = await supabase.auth.getUser(activeSession.access_token);
       if (error) {
-        console.warn("Stale session detected, clearing:", error.message);
         await supabase.auth.signOut();
         clearStaleSession();
         return false;
@@ -117,21 +93,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id).catch(console.error).finally(finishInit);
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
+      setUser(nextSession?.user ?? null);
+      if (nextSession?.user) {
+        fetchProfile(nextSession.user.id).finally(finishInit);
       } else {
         setProfile(null);
         finishInit();
       }
     });
 
-    supabase.auth.getSession()
-      .then(async ({ data: { session } }) => {
-        if (session?.user) {
-          const valid = await verifySession(session);
+    supabase.auth
+      .getSession()
+      .then(async ({ data: { session: existingSession } }) => {
+        if (existingSession?.user) {
+          const valid = await verifySession(existingSession);
           if (!valid) {
             setSession(null);
             setUser(null);
@@ -139,22 +116,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             finishInit();
             return;
           }
-          setSession(session);
-          setUser(session.user);
-          fetchProfile(session.user.id).catch(console.error).finally(finishInit);
+          setSession(existingSession);
+          setUser(existingSession.user);
+          fetchProfile(existingSession.user.id).finally(finishInit);
         } else {
           finishInit();
         }
       })
-      .catch((err) => {
-        console.error("getSession error:", err);
+      .catch(() => {
         clearStaleSession();
         finishInit();
       });
 
     const timeoutId = setTimeout(() => {
       if (!initialized.current) {
-        console.warn("Auth init timed out, clearing stale session");
         clearStaleSession();
         finishInit();
       }

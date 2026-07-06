@@ -136,6 +136,10 @@ export type Database = {
         Args: Record<string, never>;
         Returns: void;
       };
+      delete_user: {
+        Args: Record<string, never>;
+        Returns: void;
+      };
     };
     Enums: {
       [_ in never]: never;

@@ -20,13 +20,13 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState<Tab>("stats");
 
   return (
-    <div className="min-h-screen bg-[#F8F5F0]">
+    <div className="min-h-screen bg-background">
       <Navbar
         tabs={TABS}
         activeTab={activeTab}
         onTabChange={(key) => setActiveTab(key as Tab)}
       />
-      <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
+      <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
         {activeTab === "generate" && <GenerateTab />}
         {activeTab === "stats" && <StatsTab />}
         {activeTab === "toolkit" && <ToolkitTab />}

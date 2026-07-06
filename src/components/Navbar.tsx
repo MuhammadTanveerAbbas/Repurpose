@@ -81,7 +81,7 @@ export const Navbar = ({ tabs, activeTab, onTabChange }: NavbarProps) => {
                 className={cn(
                   "px-3.5 py-1.5 rounded-xl text-sm font-medium font-sans capitalize transition-all",
                   activeTab === tab.key
-                    ? "bg-[#E8743A] text-white shadow-sm"
+                    ? "bg-primary text-white shadow-sm"
                     : "text-stone-500 hover:text-stone-800 hover:bg-stone-100",
                 )}
               >
@@ -91,25 +91,27 @@ export const Navbar = ({ tabs, activeTab, onTabChange }: NavbarProps) => {
           ) : (
             <>
               {publicNavLinks.map((link) => (
-                <Link key={link.to} to={link.to}>
-                  <button
-                    className={cn(
-                      "px-3.5 py-1.5 text-sm rounded-xl transition-all font-sans font-medium",
-                      location.pathname === link.to
-                        ? "bg-[#E8743A] text-white shadow-sm"
-                        : "text-stone-500 hover:text-stone-800 hover:bg-stone-100",
-                    )}
-                  >
-                    {link.label}
-                  </button>
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={cn(
+                    "px-3.5 py-1.5 text-sm rounded-xl transition-all font-sans font-medium inline-block",
+                    location.pathname === link.to
+                      ? "bg-primary text-white shadow-sm"
+                      : "text-stone-500 hover:text-stone-800 hover:bg-stone-100",
+                  )}
+                >
+                  {link.label}
                 </Link>
               ))}
               {location.pathname === "/" &&
                 landingAnchorLinks.map((link) => (
-                  <a key={link.href} href={link.href}>
-                    <button className="px-3.5 py-1.5 text-sm rounded-xl transition-all font-sans font-medium text-stone-500 hover:text-stone-800 hover:bg-stone-100">
-                      {link.label}
-                    </button>
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    className="px-3.5 py-1.5 text-sm rounded-xl transition-all font-sans font-medium inline-block text-stone-500 hover:text-stone-800 hover:bg-stone-100"
+                  >
+                    {link.label}
                   </a>
                 ))}
             </>
@@ -168,7 +170,7 @@ export const Navbar = ({ tabs, activeTab, onTabChange }: NavbarProps) => {
               <Link to="/signup">
                 <Button
                   size="sm"
-                  className="h-8 bg-[#E8743A] hover:bg-[#D4632A] text-white rounded-xl font-sans font-semibold shadow-brand transition-all active:scale-[0.98] text-sm"
+                  className="h-8 bg-primary hover:bg-primary/90 text-white rounded-xl font-sans font-semibold shadow-brand transition-all active:scale-[0.98] text-sm"
                 >
                   Get started
                 </Button>
@@ -241,7 +243,7 @@ export const Navbar = ({ tabs, activeTab, onTabChange }: NavbarProps) => {
                 className={cn(
                   "w-full text-left px-3 py-2.5 text-sm rounded-xl font-sans capitalize font-medium transition-all",
                   activeTab === tab.key
-                    ? "bg-[#E8743A] text-white"
+                    ? "bg-primary text-white"
                     : "text-stone-500 hover:text-stone-900 hover:bg-stone-50",
                 )}
               >
@@ -255,17 +257,14 @@ export const Navbar = ({ tabs, activeTab, onTabChange }: NavbarProps) => {
                   key={link.to}
                   to={link.to}
                   onClick={() => setMobileOpen(false)}
+                  className={cn(
+                    "block w-full text-left px-3 py-2.5 text-sm rounded-xl font-sans font-medium transition-all",
+                    location.pathname === link.to
+                      ? "bg-primary text-white"
+                      : "text-stone-500 hover:text-stone-900 hover:bg-stone-50",
+                  )}
                 >
-                  <button
-                    className={cn(
-                      "w-full text-left px-3 py-2.5 text-sm rounded-xl font-sans font-medium transition-all",
-                      location.pathname === link.to
-                        ? "bg-[#E8743A] text-white"
-                        : "text-stone-500 hover:text-stone-900 hover:bg-stone-50",
-                    )}
-                  >
-                    {link.label}
-                  </button>
+                  {link.label}
                 </Link>
               ))}
               {location.pathname === "/" &&
@@ -274,10 +273,9 @@ export const Navbar = ({ tabs, activeTab, onTabChange }: NavbarProps) => {
                     key={link.href}
                     href={link.href}
                     onClick={() => setMobileOpen(false)}
+                    className="block w-full text-left px-3 py-2.5 text-sm rounded-xl font-sans font-medium transition-all text-stone-500 hover:text-stone-900 hover:bg-stone-50"
                   >
-                    <button className="w-full text-left px-3 py-2.5 text-sm rounded-xl font-sans font-medium transition-all text-stone-500 hover:text-stone-900 hover:bg-stone-50">
-                      {link.label}
-                    </button>
+                    {link.label}
                   </a>
                 ))}
             </>
@@ -316,7 +314,7 @@ export const Navbar = ({ tabs, activeTab, onTabChange }: NavbarProps) => {
                 onClick={() => setMobileOpen(false)}
               >
                 <Button
-                  className="w-full bg-[#E8743A] hover:bg-[#D4632A] text-white rounded-xl"
+                  className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl"
                   size="sm"
                 >
                   Sign up

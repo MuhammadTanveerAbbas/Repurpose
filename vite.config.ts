@@ -16,6 +16,16 @@ export default defineConfig(() => ({
       },
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          recharts: ["recharts"],
+          "framer-motion": ["framer-motion"],
+        },
+      },
+    },
+  },
   plugins: [react()],
   resolve: {
     alias: {

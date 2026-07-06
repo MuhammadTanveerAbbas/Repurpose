@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Lightbulb, FileText, Link as LinkIcon, Frown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { InputMode } from "@/lib/groq";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface Props {
@@ -64,14 +65,15 @@ export const InputStep = ({
     }
 
     if (mode === "youtube") {
-      const videoIdMatch = input.match(/(?:v=|\/)([\w-]{11})/);
+      const videoIdMatch = input.match(
+        /(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([\w-]{11})/,
+      );
       if (!videoIdMatch) {
         toast.error("Invalid YouTube URL. Try again.");
         return;
       }
       const videoId = videoIdMatch[1];
       try {
-        const { supabase } = await import("@/integrations/supabase/client");
         const { data: { session } } = await supabase.auth.getSession();
         const token = session?.access_token ?? "";
 
@@ -161,7 +163,7 @@ export const InputStep = ({
         <Button
           onClick={handleSubmit}
           disabled={loading || usageUsed >= usageLimit}
-          className="w-full h-11 rounded-xl bg-[#E8743A] hover:bg-[#D4632A] text-white font-sans font-semibold shadow-brand transition-all active:scale-[0.98]"
+          className="w-full h-11 rounded-xl bg-primary hover:bg-primary/90 text-white font-sans font-semibold shadow-brand transition-all active:scale-[0.98]"
         >
           {loading ? "Analyzing..." : "Analyze & Plan →"}
         </Button>
