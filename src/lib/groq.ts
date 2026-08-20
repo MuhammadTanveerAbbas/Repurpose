@@ -103,7 +103,6 @@ export const callGroq = async (
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: sanitizeInput(userMessage) },

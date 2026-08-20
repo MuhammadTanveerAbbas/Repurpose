@@ -7,10 +7,16 @@ const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? process.e
 export const verifyUser = async (authHeader?: string): Promise<User | null> => {
   if (!authHeader?.startsWith("Bearer ")) return null;
 
-  const token = authHeader.slice(7);
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  const { data: { user }, error } = await supabase.auth.getUser(token);
+  try {
+    const token = authHeader.slice(7);
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data: { user }, error } = await supabase.auth.getUser(token);
 
-  if (error || !user) return null;
-  return user;
+    if (error || !user) return null;
+    return user;
+  } catch {
+    // Fail closed: if Supabase is temporarily unavailable, treat the request
+    // as unauthenticated rather than crashing the endpoint.
+    return null;
+  }
 };

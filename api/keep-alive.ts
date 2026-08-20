@@ -19,12 +19,17 @@ export default async function handler(
     return response.status(401).json({ error: "Unauthorized" });
   }
 
-  const { error } = await supabase.from("projects").select("id").limit(1);
+  try {
+    const { error } = await supabase.from("projects").select("id").limit(1);
 
-  if (error) {
-    console.error("Keep-alive query failed:", error);
+    if (error) {
+      console.error("Keep-alive query failed:", error.message);
+      return response.status(500).json({ error: "Database connection failed" });
+    }
+
+    return response.status(200).json({ success: true, message: "Database connection alive" });
+  } catch (error) {
+    console.error("Keep-alive query failed:", error instanceof Error ? error.message : error);
     return response.status(500).json({ error: "Database connection failed" });
   }
-
-  return response.status(200).json({ success: true, message: "Database connection alive" });
 }

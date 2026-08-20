@@ -117,6 +117,7 @@ All `VITE_` prefixed variables are client-safe (exposed to the browser). Server-
 repurpose-ai/
 ├── api/                        # Vercel Serverless Functions
 │   ├── _lib/
+│   │   ├── groq-service.ts     # Groq client — model discovery, fallback, bounded retries
 │   │   ├── stripe.ts           # Stripe singleton
 │   │   ├── supabase-admin.ts   # Supabase admin client (service role)
 │   │   └── verify-auth.ts      # JWT verification helper
@@ -214,6 +215,18 @@ Deploy to Vercel:
 - [ ] API access for Pro users
 - [ ] Custom tone instructions
 - [ ] White-label exports
+
+## Reliability
+
+The `/api/groq` proxy self-heals around external AI failures without changing the app's behavior:
+
+- **Model discovery** — fetches the live Groq model list and caches it server-side (60s TTL); the cache is refreshed when the selected model is rejected.
+- **Model fallback** — deterministic selection (requested → preferred → any chat-capable model), with a single safe fallback retry when a model is unavailable/deprecated.
+- **Rate limits** — honors `Retry-After` when present, otherwise bounded exponential backoff with jitter; stops after a small retry cap.
+- **Transient failures** — network errors, timeouts, and 5xx responses are retried a bounded number of times, then fail gracefully without crashing the app.
+- **`/api/health`** — lightweight read-only Supabase connectivity check with a timeout; the app degrades gracefully when Supabase is unavailable.
+
+No secrets are ever sent to the client, and the Groq API key stays server-side.
 
 ## License
 

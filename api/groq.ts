@@ -1,4 +1,5 @@
 import { verifyUser } from "./_lib/verify-auth";
+import { completeChat, GroqServiceError } from "./_lib/groq-service";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { z } from "zod";
 
@@ -9,33 +10,16 @@ if (!GROQ_API_KEY) {
 }
 
 const groqRequestSchema = z.object({
-  model: z.string().min(1),
-  messages: z.array(z.object({
-    role: z.enum(["system", "user", "assistant"]),
-    content: z.string(),
-  })).min(1),
+  model: z.string().min(1).optional(),
+  messages: z.array(
+    z.object({
+      role: z.enum(["system", "user", "assistant"]),
+      content: z.string(),
+    }),
+  ).min(1),
   temperature: z.number().min(0).max(2).optional(),
   max_tokens: z.number().int().positive().optional(),
 });
-
-const TIMEOUT_MS = 55000;
-const MAX_RETRIES = 2;
-
-async function fetchWithRetry(
-  url: string,
-  options: RequestInit,
-  retries: number,
-): Promise<Response> {
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    const response = await fetch(url, {
-      ...options,
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-    });
-    if (response.ok || attempt === retries) return response;
-    await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
-  }
-  throw new Error("All retries exhausted");
-}
 
 export default async function handler(
   request: VercelRequest,
@@ -60,32 +44,15 @@ export default async function handler(
   }
 
   try {
-    const groqResponse = await fetchWithRetry(
-      "https://api.groq.com/openai/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${GROQ_API_KEY}`,
-        },
-        body: JSON.stringify(parsed.data),
-      },
-      MAX_RETRIES,
-    );
-
-    if (!groqResponse.ok) {
-      const errorText = await groqResponse.text();
-      console.error("Groq API error:", groqResponse.status, errorText);
-      return response.status(groqResponse.status).json({
-        error: "AI service temporarily unavailable",
-      });
-    }
-
-    const data = await groqResponse.json();
+    const { data } = await completeChat(parsed.data);
     return response.status(200).json(data);
   } catch (error) {
-    console.error("Groq proxy error:", error);
-    return response.status(500).json({
+    const status = error instanceof GroqServiceError ? error.status : 500;
+    console.error(
+      "Groq proxy error:",
+      error instanceof Error ? error.message : error,
+    );
+    return response.status(status).json({
       error: "AI service temporarily unavailable",
     });
   }

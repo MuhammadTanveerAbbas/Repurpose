@@ -4,7 +4,17 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "";
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || "";
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const HEALTH_TIMEOUT_MS = 10_000;
+
+// A lightweight read-only check against an existing resource. The timeout
+// ensures the endpoint fails clearly instead of hanging when Supabase is
+// genuinely unavailable.
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  global: {
+    fetch: (input: RequestInfo | URL, init?: RequestInit) =>
+      fetch(input, { ...init, signal: AbortSignal.timeout(HEALTH_TIMEOUT_MS) }),
+  },
+});
 
 export default async function handler(
   request: VercelRequest,
