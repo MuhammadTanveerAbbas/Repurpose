@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { getAuthErrorMessage } from "@/lib/auth-errors";
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email"),
@@ -41,11 +42,7 @@ const Login = () => {
       password: data.password,
     });
     if (error) {
-      if (error.message.toLowerCase().includes("invalid")) {
-        setError("root", { message: "Invalid email or password" });
-      } else {
-        setError("root", { message: error.message });
-      }
+      setError("root", { message: getAuthErrorMessage(error) });
     } else {
       navigate("/dashboard");
     }
@@ -84,7 +81,7 @@ const Login = () => {
             onClick={async () => {
               const { error } = await supabase.auth.signInWithOAuth({
                 provider: "google",
-                options: { redirectTo: window.location.origin },
+                options: { redirectTo: `${window.location.origin}/dashboard` },
               });
               if (error) toast.error(error.message);
             }}

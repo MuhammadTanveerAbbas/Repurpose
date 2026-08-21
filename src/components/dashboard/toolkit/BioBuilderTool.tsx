@@ -96,7 +96,7 @@ What makes me unique: ${answers[4]}`;
       if (!match) throw new Error("parse");
       setOutput(JSON.parse(match[0]) as BioOutputs);
     } catch {
-      toast.error("Groq is being slow — try again.");
+      toast.error("The AI service is busy. Please try again.");
     } finally {
       setLoading(false);
     }

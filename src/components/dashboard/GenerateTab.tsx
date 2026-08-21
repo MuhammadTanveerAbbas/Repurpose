@@ -8,7 +8,7 @@ import type {
   ContentFormat,
   GeneratedOutput,
 } from "@/lib/groq";
-import { analyzeContent, generateAllFormats, generateFormat, checkAndIncrementUsage } from "@/lib/groq";
+import { analyzeContent, generateAllFormats, generateFormat, cleanGeneratedContent, checkAndIncrementUsage } from "@/lib/groq";
 import { getPlanLimit } from "@/config/plans";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -47,7 +47,7 @@ export const GenerateTab = () => {
       setStep("strategy");
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Groq is being slow, try again.",
+        err instanceof Error ? err.message : "The AI service is busy. Please try again.",
       );
     } finally {
       setAnalyzingLoading(false);
@@ -77,20 +77,21 @@ export const GenerateTab = () => {
     const completedOutputs: GeneratedOutput[] = [];
 
     const onProgress = (format: ContentFormat, content: string, error?: string) => {
+      if (content) completedOutputs.push({ format, content, done: false });
       setOutputs((prev) =>
-        prev.map((o) =>
-          o.format === format
-            ? { ...o, content: content || (error ? "Generation failed. Hit regenerate to retry." : "") }
-            : o,
-        ),
+        prev.map((o) => (o.format === format ? { ...o, content, error } : o)),
       );
-      if (content) {
-        completedOutputs.push({ format, content, done: false });
-      }
     };
 
     await generateAllFormats(selectedFormats, strategy, rawInput, onProgress);
     setGenerating(false);
+
+    const failedCount = selectedFormats.length - completedOutputs.length;
+    if (failedCount > 0 && completedOutputs.length > 0) {
+      toast.warning(
+        `${failedCount} format${failedCount !== 1 ? "s" : ""} failed. Hit regenerate to retry.`,
+      );
+    }
 
     if (user && strategy) {
       try {
@@ -118,19 +119,23 @@ export const GenerateTab = () => {
   const handleRegenerate = async (format: ContentFormat) => {
     if (!strategy) return;
     setOutputs((prev) =>
-      prev.map((o) => (o.format === format ? { ...o, content: "" } : o)),
+      prev.map((o) =>
+        o.format === format ? { ...o, content: "", error: undefined } : o,
+      ),
     );
     try {
       const content = await generateFormat(format, strategy, rawInput);
+      const cleaned = cleanGeneratedContent(content);
       setOutputs((prev) =>
-        prev.map((o) => (o.format === format ? { ...o, content } : o)),
+        prev.map((o) => (o.format === format ? { ...o, content: cleaned } : o)),
       );
+      toast.success(`${format} regenerated.`);
     } catch {
       toast.error("Regeneration failed. Try again.");
       setOutputs((prev) =>
         prev.map((o) =>
           o.format === format
-            ? { ...o, content: "Generation failed. Hit regenerate to retry." }
+            ? { ...o, error: "Generation failed. Hit regenerate to retry." }
             : o,
         ),
       );

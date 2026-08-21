@@ -19,27 +19,27 @@
 
 ## Overview
 
-Repurpose AI is a content repurposing platform for solo founders and creators. Drop in a rough idea, a transcript, a YouTube URL, or a pain point — the AI analyzes your input, builds a content strategy, and generates platform-ready outputs across 9 formats (LinkedIn Post, Twitter/X Thread, Short-form Video Script, Cold Email Draft, and more).
+Repurpose AI is a content repurposing platform for solo founders and creators. Drop in a rough idea, a transcript, a YouTube URL, or a pain point - the AI analyzes your input, builds a content strategy, and generates platform-ready outputs across 9 formats (LinkedIn Post, Twitter/X Thread, Short-form Video Script, Cold Email Draft, and more).
 
-Each format has platform-specific prompts baked in — character limits, structure rules, tone conventions. Editable inline. Copy or export as Markdown.
+Each format has platform-specific prompts baked in - character limits, structure rules, tone conventions. Editable inline. Copy or export as Markdown.
 
 ## Features
 
-- **4 input modes** — Idea, Transcript, YouTube URL, Pain Point
-- **AI content strategy analysis** — core message, audience, tone, hook ideas, emotional triggers, content pillars
-- **9 output formats** — LinkedIn Post/Hook, Twitter/X Thread, Short-form Video Script, Cold Email Draft, Newsletter Section, YouTube Description, Instagram Caption, Personal Brand Bio
-- **Inline editing** — every output is a live textarea, rewrite directly
-- **Regenerate individual formats** — without losing the others
+- **4 input modes** - Idea, Transcript, YouTube URL, Pain Point
+- **AI content strategy analysis** - core message, audience, tone, hook ideas, emotional triggers, content pillars
+- **9 output formats** - LinkedIn Post/Hook, Twitter/X Thread, Short-form Video Script, Cold Email Draft, Newsletter Section, YouTube Description, Instagram Caption, Personal Brand Bio
+- **Inline editing** - every output is a live textarea, rewrite directly
+- **Regenerate individual formats** - without losing the others
 - **Copy All + Export Markdown**
-- **4 toolkit tools** — Repurposer (convert between formats), Hook Generator (10 hooks), Bio Builder (5 bios from 5 answers), Angle Finder (8 content angles)
-- **Usage-based plans** — Free (5/month), Creator (unlimited), Pro (unlimited + history)
-- **Project history** — Pro-only, view/reopen/delete past sessions
-- **Stats dashboard** — usage ring, weekly activity, top formats, input modes
-- **Supabase Auth** — email/password + Google OAuth
-- **Stripe payments** — wired for Creator/Pro plans (coming soon)
-- **RLS-protected database** — each user sees only their own data
-- **Serverless API** — Vercel Functions for Groq proxy, Stripe webhooks, transcript fetching
-- **Dark/light mode** — warm amber-orange design system with CSS variable tokens
+- **4 toolkit tools** - Repurposer (convert between formats), Hook Generator (10 hooks), Bio Builder (5 bios from 5 answers), Angle Finder (8 content angles)
+- **Usage-based plans** - Free (5/month), Creator (unlimited), Pro (unlimited + history)
+- **Project history** - Pro-only, view/reopen/delete past sessions
+- **Stats dashboard** - usage ring, weekly activity, top formats, input modes
+- **Supabase Auth** - email/password + Google OAuth
+- **Stripe payments** - wired for Creator/Pro plans (coming soon)
+- **RLS-protected database** - each user sees only their own data
+- **Serverless API** - Vercel Functions for Groq proxy, Stripe webhooks, transcript fetching
+- **Dark/light mode** - warm amber-orange design system with CSS variable tokens
 
 ## Tech Stack
 
@@ -54,7 +54,7 @@ Each format has platform-specific prompts baked in — character limits, structu
 | Auth | Supabase Auth 2.98 (PKCE, email/password + Google OAuth) |
 | Database | Supabase PostgreSQL (RLS-enabled, 3 tables + functions) |
 | Payments | Stripe 22.1 (Checkout, Billing Portal, Webhooks) |
-| AI | Groq API — Llama 3.3 70B (via serverless proxy) |
+| AI | Groq API - Llama 3.3 70B (via serverless proxy) |
 | Forms | react-hook-form 7 + Zod 3 (validated client + server) |
 | Charts | Recharts |
 | Export | Markdown (native) |
@@ -117,18 +117,18 @@ All `VITE_` prefixed variables are client-safe (exposed to the browser). Server-
 repurpose-ai/
 ├── api/                        # Vercel Serverless Functions
 │   ├── _lib/
-│   │   ├── groq-service.ts     # Groq client — model discovery, fallback, bounded retries
+│   │   ├── groq-service.ts     # Groq client - model discovery, fallback, bounded retries
 │   │   ├── stripe.ts           # Stripe singleton
 │   │   ├── supabase-admin.ts   # Supabase admin client (service role)
 │   │   └── verify-auth.ts      # JWT verification helper
-│   ├── groq.ts                 # POST — proxies to Groq AI
-│   ├── health.ts               # GET — database connectivity check
-│   ├── keep-alive.ts           # GET — cron (prevents cold starts)
-│   ├── transcript.ts           # GET — YouTube transcript fetch
+│   ├── groq.ts                 # POST - proxies to Groq AI
+│   ├── health.ts               # GET - database connectivity check
+│   ├── keep-alive.ts           # GET - cron (prevents cold starts)
+│   ├── transcript.ts           # GET - YouTube transcript fetch
 │   └── stripe/
-│       ├── create-checkout.ts  # POST — Stripe Checkout session
-│       ├── customer-portal.ts  # POST — Stripe Billing Portal
-│       └── webhook.ts          # POST — Stripe event handling
+│       ├── create-checkout.ts  # POST - Stripe Checkout session
+│       ├── customer-portal.ts  # POST - Stripe Billing Portal
+│       └── webhook.ts          # POST - Stripe event handling
 ├── public/                     # Static assets
 ├── src/
 │   ├── components/
@@ -220,21 +220,21 @@ Deploy to Vercel:
 
 The `/api/groq` proxy self-heals around external AI failures without changing the app's behavior:
 
-- **Model discovery** — fetches the live Groq model list and caches it server-side (60s TTL); the cache is refreshed when the selected model is rejected.
-- **Model fallback** — deterministic selection (requested → preferred → any chat-capable model), with a single safe fallback retry when a model is unavailable/deprecated.
-- **Rate limits** — honors `Retry-After` when present, otherwise bounded exponential backoff with jitter; stops after a small retry cap.
-- **Transient failures** — network errors, timeouts, and 5xx responses are retried a bounded number of times, then fail gracefully without crashing the app.
-- **`/api/health`** — lightweight read-only Supabase connectivity check with a timeout; the app degrades gracefully when Supabase is unavailable.
+- **Model discovery** - fetches the live Groq model list and caches it server-side (60s TTL); the cache is refreshed when the selected model is rejected.
+- **Model fallback** - deterministic selection (requested → preferred → any chat-capable model), with a single safe fallback retry when a model is unavailable/deprecated.
+- **Rate limits** - honors `Retry-After` when present, otherwise bounded exponential backoff with jitter; stops after a small retry cap.
+- **Transient failures** - network errors, timeouts, and 5xx responses are retried a bounded number of times, then fail gracefully without crashing the app.
+- **`/api/health`** - lightweight read-only Supabase connectivity check with a timeout; the app degrades gracefully when Supabase is unavailable.
 
 No secrets are ever sent to the client, and the Groq API key stays server-side.
 
 ## License
 
-MIT — see [LICENSE](LICENSE)
+MIT - see [LICENSE](LICENSE)
 
 ---
 
 ## 👨‍💻 Built by The MVP Guy
 
-Muhammad Tanveer Abbas — SaaS Developer | Production-ready MVPs in 14–21 days
+Muhammad Tanveer Abbas - SaaS Developer | Production-ready MVPs in 14-21 days
 Portfolio: [themvpguy.vercel.app](https://themvpguy.vercel.app)

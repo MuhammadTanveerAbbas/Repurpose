@@ -209,7 +209,7 @@ export async function completeChat(params: GroqChatParams): Promise<GroqChatResu
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       });
     } catch {
-      // Network error or timeout — transient, safe to retry.
+      // Network error or timeout - transient, safe to retry.
       if (transientRetries >= MAX_TRANSIENT_RETRIES) {
         throw new GroqServiceError("AI service temporarily unavailable", 502);
       }
@@ -231,7 +231,7 @@ export async function completeChat(params: GroqChatParams): Promise<GroqChatResu
 
     const status = response.status;
 
-    // The selected model was rejected — refresh the list and fall back once.
+    // The selected model was rejected - refresh the list and fall back once.
     if (
       (status === 400 || status === 404) &&
       isModelError(await response.json().catch(() => null))
@@ -251,7 +251,7 @@ export async function completeChat(params: GroqChatParams): Promise<GroqChatResu
       continue;
     }
 
-    // Rate limit — respect Retry-After, otherwise bounded backoff with jitter.
+    // Rate limit - respect Retry-After, otherwise bounded backoff with jitter.
     if (status === 429) {
       if (rateLimitRetries >= MAX_RATE_LIMIT_RETRIES) {
         throw new GroqServiceError(
@@ -275,7 +275,7 @@ export async function completeChat(params: GroqChatParams): Promise<GroqChatResu
       continue;
     }
 
-    // Any other client error — do not retry.
+    // Any other client error - do not retry.
     throw new GroqServiceError("AI service request failed", status);
   }
 }

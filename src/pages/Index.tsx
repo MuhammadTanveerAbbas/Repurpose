@@ -25,7 +25,7 @@ const faqs = [
   },
   {
     q: "How does the AI strategy step work?",
-    a: "Before generating anything, the tool analyzes your input and returns a Content Strategy Card — core message, target audience, recommended tone, and the best 3–5 formats for that specific input. You can edit the plan before hitting generate.",
+    a: "Before generating anything, the tool analyzes your input and returns a Content Strategy Card - core message, target audience, recommended tone, and the best 3-5 formats for that specific input. You can edit the plan before hitting generate.",
   },
   {
     q: "What content formats can it generate?",
@@ -53,7 +53,7 @@ const formats = [
   {
     icon: "💼",
     label: "LinkedIn Post",
-    detail: "150–300 words, hook + insight + CTA",
+    detail: "150-300 words, hook + insight + CTA",
   },
   {
     icon: "🪝",
@@ -63,7 +63,7 @@ const formats = [
   {
     icon: "🐦",
     label: "Twitter/X Thread",
-    detail: "6–8 tweets, each under 280 chars",
+    detail: "6-8 tweets, each under 280 chars",
   },
   {
     icon: "🎬",
@@ -109,7 +109,7 @@ const comparisonFeatures = [
   { feature: "AI strategy analysis", free: "✓", creator: "✓", pro: "✓" },
   { feature: "Inline editing + regenerate", free: "✓", creator: "✓", pro: "✓" },
   { feature: "Copy All / Export .md", free: "✓", creator: "✓", pro: "✓" },
-  { feature: "Project history", free: "—", creator: "—", pro: "✓" },
+  { feature: "Project history", free: "-", creator: "-", pro: "✓" },
   { feature: "YouTube transcript fetch", free: "✓", creator: "✓", pro: "✓" },
 ];
 
@@ -254,7 +254,7 @@ const Index = () => {
               {
                 num: "02",
                 title: "Review the strategy",
-                desc: "Before generating, the AI analyzes your input and shows you a Content Strategy Card — core message, audience, tone, and recommended formats. Edit it or just hit go.",
+                desc: "Before generating, the AI analyzes your input and shows you a Content Strategy Card - core message, audience, tone, and recommended formats. Edit it or just hit go.",
               },
               {
                 num: "03",
@@ -309,7 +309,7 @@ const Index = () => {
                 icon: <FileText className="h-5 w-5 text-amber-500" />,
                 label: "Transcript",
                 desc: "Paste raw transcript text. The tool repurposes it intelligently.",
-                example: "Paste any raw transcript — podcast, talk, interview",
+                example: "Paste any raw transcript - podcast, talk, interview",
               },
               {
                 icon: <LinkIcon className="h-5 w-5 text-amber-500" />,
@@ -358,14 +358,14 @@ const Index = () => {
                 9 formats, one input
               </h2>
               <p className="font-sans text-sm text-stone-500 leading-relaxed mb-4">
-                Each format has platform-specific prompts baked in — character
+                Each format has platform-specific prompts baked in - character
                 limits, structure, tone conventions. The AI follows them. You
                 pick which ones to generate.
               </p>
               <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
                 <Sparkles className="h-4 w-4 text-amber-500 shrink-0" />
                 <p className="font-sans text-xs text-amber-700">
-                  The AI recommends the best 3–5 formats for your specific input
+                  The AI recommends the best 3-5 formats for your specific input
                 </p>
               </div>
             </FadeUp>
@@ -444,7 +444,7 @@ const Index = () => {
               Compare plans
             </h2>
             <p className="font-sans text-stone-500 mb-10 text-center max-w-md mx-auto leading-relaxed">
-              Payments aren't live yet — but here's what the plans will look
+              Payments aren't live yet - but here's what the plans will look
               like.
             </p>
           </FadeUp>
@@ -584,7 +584,7 @@ const Index = () => {
               </span>
               <p className="font-sans text-sm text-stone-500 mt-3 leading-relaxed max-w-xs">
                 Smart Content Engine for solo founders and creators. Give it
-                anything — get content worth posting.
+                anything - get content worth posting.
               </p>
             </div>
             <div>
@@ -657,7 +657,7 @@ const Index = () => {
             </div>
           </div>
           <div className="border-t border-stone-200 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-400 font-sans">
-            <p>© 2026 Repurpose AI. Early access — no payments active.</p>
+            <p>© 2026 Repurpose AI. Early access - no payments active.</p>
           </div>
         </div>
       </footer>

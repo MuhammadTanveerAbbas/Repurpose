@@ -118,7 +118,7 @@ export const Navbar = ({ tabs, activeTab, onTabChange }: NavbarProps) => {
           )}
         </div>
 
-        {/* Right — avatar or auth */}
+        {/* Right - avatar or auth */}
         <div className="flex items-center gap-1.5 shrink-0 ml-1">
           {user ? (
             <DropdownMenu>

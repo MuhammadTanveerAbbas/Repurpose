@@ -47,13 +47,13 @@ export const HookGeneratorTool = () => {
     }
 
     const categoryInstruction = category === "linkedin"
-      ? "Optimize these hooks specifically for LinkedIn — first 3 lines must create curiosity gap. No clickbait."
+      ? "Optimize these hooks specifically for LinkedIn - first 3 lines must create curiosity gap. No clickbait."
       : category === "twitter"
-        ? "Optimize these hooks for Twitter/X — each under 240 characters, punchy, quotable."
+        ? "Optimize these hooks for Twitter/X - each under 240 characters, punchy, quotable."
         : category === "video"
-          ? "Optimize these hooks for short-form video (TikTok/Reels/Shorts) — visual, pattern-interrupting, spoken-word friendly."
+          ? "Optimize these hooks for short-form video (TikTok/Reels/Shorts) - visual, pattern-interrupting, spoken-word friendly."
           : category === "email"
-            ? "Write these as email subject lines — under 8 words, curiosity-driven, no spam patterns."
+            ? "Write these as email subject lines - under 8 words, curiosity-driven, no spam patterns."
             : "";
 
     try {
@@ -62,16 +62,16 @@ export const HookGeneratorTool = () => {
 Generate exactly 10 hooks for the given topic. Each hook uses a DIFFERENT psychological trigger.
 
 THE 10 HOOK STYLES (use one per hook, in this order):
-1. **Contrarian** — Challenge a widely held belief. "Everyone says X, but here's why they're wrong."
-2. **Curiosity Gap** — Tease something surprising without revealing it. "I tried [strategy] for 30 days. I didn't expect what happened."
-3. **Specific Number** — Lead with a concrete data point or result. "I turned $500 into $50k in 90 days using one rule."
-4. **Vulnerable Admission** — Share a failure or insecurity first. "I almost quit my business 3 times last year."
-5. **Pattern Interrupt** — Say something that makes the reader literally stop. "Stop doing [common thing]. It's costing you [result]."
-6. **Bold Claim** — Make a confident, slightly controversial statement. "[Topic] is dead. Here's what replaces it."
-7. **Relatable Frustration** — Name a pain they feel daily. "You know that feeling when [specific frustration]? Me too."
-8. **Story Opener** — Start mid-action or mid-dialogue. ""I can't believe you just said that," my client said..."
-9. **Direct Address** — Speak to them personally with a specific identity. "If you're a [specific person] who wants [specific result], read this."
-10. **Ultimate Outcome** — Lead with the transformation. "This one change doubled my revenue in 30 days."
+1. **Contrarian** - Challenge a widely held belief. "Everyone says X, but here's why they're wrong."
+2. **Curiosity Gap** - Tease something surprising without revealing it. "I tried [strategy] for 30 days. I didn't expect what happened."
+3. **Specific Number** - Lead with a concrete data point or result. "I turned $500 into $50k in 90 days using one rule."
+4. **Vulnerable Admission** - Share a failure or insecurity first. "I almost quit my business 3 times last year."
+5. **Pattern Interrupt** - Say something that makes the reader literally stop. "Stop doing [common thing]. It's costing you [result]."
+6. **Bold Claim** - Make a confident, slightly controversial statement. "[Topic] is dead. Here's what replaces it."
+7. **Relatable Frustration** - Name a pain they feel daily. "You know that feeling when [specific frustration]? Me too."
+8. **Story Opener** - Start mid-action or mid-dialogue. ""I can't believe you just said that," my client said..."
+9. **Direct Address** - Speak to them personally with a specific identity. "If you're a [specific person] who wants [specific result], read this."
+10. **Ultimate Outcome** - Lead with the transformation. "This one change doubled my revenue in 30 days."
 
 RULES:
 - Each hook must be 1-2 sentences max
@@ -92,7 +92,7 @@ Return ONLY valid JSON:
       const parsed: Hook[] = JSON.parse(match[0]);
       setHooks(parsed);
     } catch {
-      toast.error("Groq is being slow — try again.");
+      toast.error("The AI service is busy. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -113,7 +113,7 @@ Return ONLY valid JSON:
           Hook Generator
         </h3>
         <p className="font-sans text-sm text-stone-500">
-          10 scroll-stopping hooks — each using a different psychological trigger. Rated by impact.
+          10 scroll-stopping hooks - each using a different psychological trigger. Rated by impact.
         </p>
       </div>
 

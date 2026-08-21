@@ -45,14 +45,14 @@ For the given topic, generate exactly 8 completely DIFFERENT content angles. Eve
 
 THE 8 ANGLE FRAMEWORKS (use each exactly once):
 
-1. **The Contrarian** — Argue against the popular opinion. "Everyone says X, but here's why the opposite is true."
-2. **The Beginner's Journey** — Frame it as a lesson learned through trial and error. "What I wish I knew before starting [topic]."
-3. **The Data-Driven** — Lead with a specific number, stat, or case study. "I analyzed 100 [things] and found X pattern."
-4. **The Vulnerability Play** — Open with a failure, doubt, or mistake, then reveal the lesson.
-5. **The Prediction** — Make a forward-looking claim. "Here's what [topic] looks like in 2027."
-6. **The Step-by-Step** — Break it down as a repeatable system or framework. "The 3-step system for [outcome]."
-7. **The Comparison** — Compare two approaches with a clear winner. "Strategy A vs Strategy B — which actually works?"
-8. **The Insider Secret** — Share something most people in your space don't know or won't say.
+1. **The Contrarian** - Argue against the popular opinion. "Everyone says X, but here's why the opposite is true."
+2. **The Beginner's Journey** - Frame it as a lesson learned through trial and error. "What I wish I knew before starting [topic]."
+3. **The Data-Driven** - Lead with a specific number, stat, or case study. "I analyzed 100 [things] and found X pattern."
+4. **The Vulnerability Play** - Open with a failure, doubt, or mistake, then reveal the lesson.
+5. **The Prediction** - Make a forward-looking claim. "Here's what [topic] looks like in 2027."
+6. **The Step-by-Step** - Break it down as a repeatable system or framework. "The 3-step system for [outcome]."
+7. **The Comparison** - Compare two approaches with a clear winner. "Strategy A vs Strategy B - which actually works?"
+8. **The Insider Secret** - Share something most people in your space don't know or won't say.
 
 For each angle provide:
 - angle: a short, punchy name (3-5 words)
@@ -79,7 +79,7 @@ Return ONLY valid JSON:
       const parsed: Angle[] = JSON.parse(match[0]);
       setAngles(parsed);
     } catch {
-      toast.error("Groq is being slow — try again.");
+      toast.error("The AI service is busy. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -98,7 +98,7 @@ Return ONLY valid JSON:
           Content Angle Finder
         </h3>
         <p className="font-sans text-sm text-stone-500">
-          8 distinct content angles — each with a hook, format recommendation, and distribution strategy.
+          8 distinct content angles - each with a hook, format recommendation, and distribution strategy.
         </p>
       </div>
 

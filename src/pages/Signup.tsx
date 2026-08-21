@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { getAuthErrorMessage } from "@/lib/auth-errors";
 
 const signupSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),
@@ -37,7 +38,7 @@ const Signup = () => {
   }, [user, navigate]);
 
   const onSubmit = async (data: SignupForm) => {
-    const { error } = await supabase.auth.signUp({
+    const { data: authData, error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
       options: {
@@ -46,11 +47,16 @@ const Signup = () => {
       },
     });
     if (error) {
-      setError("root", { message: error.message });
-    } else {
-      toast.success("Account created! Check your email to confirm.");
-      navigate("/login", { replace: true });
+      setError("root", { message: getAuthErrorMessage(error) });
+      return;
     }
+    // Email confirmation disabled: the session is live immediately.
+    if (authData.session) {
+      navigate("/dashboard", { replace: true });
+      return;
+    }
+    toast.success("Account created! Check your email to confirm.");
+    navigate("/login", { replace: true });
   };
 
   return (
@@ -86,7 +92,7 @@ const Signup = () => {
             onClick={async () => {
               const { error } = await supabase.auth.signInWithOAuth({
                 provider: "google",
-                options: { redirectTo: window.location.origin },
+                options: { redirectTo: `${window.location.origin}/dashboard` },
               });
               if (error) toast.error(error.message);
             }}

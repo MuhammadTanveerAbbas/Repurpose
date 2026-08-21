@@ -7,7 +7,7 @@ const NotFound = () => {
   const location = useLocation();
 
   useEffect(() => {
-    document.title = "Page not found — Repurpose AI";
+    document.title = "Page not found - Repurpose AI";
   }, [location.pathname]);
 
   return (

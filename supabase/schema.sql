@@ -1,5 +1,5 @@
 -- ============================================================
---  Repurpose AI — Database Schema
+--  Repurpose AI - Database Schema
 --  Safe to re-run: all statements use IF NOT EXISTS / OR REPLACE
 --  Run in: Supabase Dashboard → SQL Editor → Run
 -- ============================================================

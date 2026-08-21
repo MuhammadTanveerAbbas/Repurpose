@@ -32,6 +32,7 @@ export interface GeneratedOutput {
   format: ContentFormat;
   content: string;
   done: boolean;
+  error?: string;
 }
 
 export const ALL_FORMATS: ContentFormat[] = [
@@ -71,14 +72,14 @@ export const FORMAT_ICONS: Record<ContentFormat, string> = {
 };
 
 export const FORMAT_PLATFORM_TIPS: Record<ContentFormat, string> = {
-  "LinkedIn Post": "Best posted Tue-Thu 8-10am local time. First 3 lines visible without 'see more' — lead with tension.",
+  "LinkedIn Post": "Best posted Tue-Thu 8-10am local time. First 3 lines visible without 'see more' - lead with tension.",
   "LinkedIn Hook": "Use as the opening of a longer post. Pair with a strong visual for highest CTR.",
   "Twitter/X Thread": "Post tweet 1 as a standalone thread starter. Engage replies before posting remaining tweets.",
   "Short-form Video Script": "TikTok: fast cuts, trending audio. Reels: aesthetic, slow burn. Shorts: direct, informational.",
   "Cold Email Draft": "Send Tue-Thu morning. Follow up day 3 and day 7. Keep each email under 125 words.",
   "Newsletter Section": "Use as one section of a 3-5 section newsletter. Open rate peaks 6-8am.",
-  "YouTube Description": "First 2 lines are 'above the fold' — front-load keywords and hook.",
-  "Instagram Caption": "Post with 3-5 carousel slides or a Reel. First line is the only visible line — make it count.",
+  "YouTube Description": "First 2 lines are 'above the fold' - front-load keywords and hook.",
+  "Instagram Caption": "Post with 3-5 carousel slides or a Reel. First line is the only visible line - make it count.",
   "Personal Brand Bio Update": "Use across LinkedIn, Twitter, website, and email signature. Keep consistent.",
 };
 
@@ -108,7 +109,7 @@ export const callGroq = async (
           { role: "user", content: sanitizeInput(userMessage) },
         ],
         temperature: 0.75,
-        max_tokens: 2000,
+        max_tokens: 3500,
       }),
       signal: controller.signal,
     });
@@ -159,7 +160,7 @@ const STRATEGY_SYSTEM_PROMPT = `You are a world-class content strategist. Your j
 
 Analyze and return:
 1. core_message: The single most compelling message in 10 words or fewer. This is your title.
-2. audience: Exactly who this is for — be specific (e.g. "B2B SaaS founders doing $50k-500k ARR who are tired of complex sales")
+2. audience: Exactly who this is for - be specific (e.g. "B2B SaaS founders doing $50k-500k ARR who are tired of complex sales")
 3. recommended_formats: Pick 3-5 formats from the list that will perform BEST for this specific input. Consider: platform distribution, audience consumption habits, content type fit.
 4. tone: One of: Direct, Story-driven, Educational, Provocative, Conversational, Inspirational, Contrarian, or Data-driven
 5. strategy_note: A one-sentence growth strategy. E.g. "Lead with the contrarian take on Twitter, expand into a LinkedIn story post, then repurpose the narrative into a short-form video for TikTok."
@@ -201,7 +202,7 @@ export const analyzeContent = async (
     pain_point: "The user has a specific pain point or problem they want to address with content.",
   };
 
-  const userMessage = `Input mode: ${mode} — ${modeContext[mode]}\n\nContent:\n${input}\n\nAnalyze this ${mode === "youtube" ? "video content" : mode === "transcript" ? "transcript" : mode === "pain_point" ? "pain point" : "idea"} and produce a complete content strategy as JSON.`;
+  const userMessage = `Input mode: ${mode} - ${modeContext[mode]}\n\nContent:\n${input}\n\nAnalyze this ${mode === "youtube" ? "video content" : mode === "transcript" ? "transcript" : mode === "pain_point" ? "pain point" : "idea"} and produce a complete content strategy as JSON.`;
 
   const raw = await callGroq(STRATEGY_SYSTEM_PROMPT, userMessage);
 
@@ -234,7 +235,7 @@ export const analyzeContent = async (
 
   if (!result) {
     throw new Error(
-      "Couldn't parse the strategy response. The AI might be overloaded — try again.",
+      "Couldn't parse the strategy response. The AI might be overloaded - try again.",
     );
   }
 
@@ -259,7 +260,7 @@ FORMAT RULES:
 - End with a discussion-starting question or poll-style CTA (drives comments = boosts reach)
 - NO hashtags in body. Add 3-5 relevant hashtags at the very end.
 - Target 150-300 words. Every sentence must either inform, provoke, or inspire.
-- Use the word "you" more than "I" — make it about the reader.
+- Use the word "you" more than "I" - make it about the reader.
 
 TONE: ${tone}
 TOPIC: ${core_message}
@@ -272,9 +273,9 @@ Write the full post now.`,
 
 RULES:
 - Write EXACTLY 3 lines. No more, no less.
-- Line 1: Pattern interrupt — something unexpected that breaks the reader's scroll
-- Line 2: Curiosity gap — hint at something valuable without revealing it
-- Line 3: Transition — make them want to click "see more"
+- Line 1: Pattern interrupt - something unexpected that breaks the reader's scroll
+- Line 2: Curiosity gap - hint at something valuable without revealing it
+- Line 3: Transition - make them want to click "see more"
 - NO emojis in the hook. NO hashtags. NO "I'm excited to share" or "I'm thrilled to announce"
 - Every word must earn its place. Cut every adverb, adjective, and filler word.
 - Techniques: Bold claim, counter-intuitive observation, vulnerable admission, specific number, or relatable frustration
@@ -312,7 +313,7 @@ THE 60-SECOND RETENTION FORMULA:
 - 55-60 seconds (the CTA): Like, follow, save, comment, or share. Be specific about WHY they should do it.
 
 WRITING RULES:
-- Write for spoken word — conversational, punchy, natural. Read it aloud to test flow.
+- Write for spoken word - conversational, punchy, natural. Read it aloud to test flow.
 - Include [VISUAL: description] cues for video editors (e.g. "[VISUAL: split screen before/after]")
 - Include [PAUSE] for dramatic timing
 - Include [TEXT OVERLAY: key phrase] for retention hooks
@@ -326,7 +327,7 @@ AUDIENCE: ${audience}`,
     "Cold Email Draft": `You are a cold email conversion copywriter. Write an email that gets replies, not deleted.
 
 THE 4-SENTENCE FORMULA:
-1. OPENER (1 line): Personalize with a specific detail about them. Show you did your research. Not "I love your content" — that's spam.
+1. OPENER (1 line): Personalize with a specific detail about them. Show you did your research. Not "I love your content" - that's spam.
 2. VALUE (1 line): State what you can do for them in ONE concrete sentence. Be specific with numbers or outcomes.
 3. ASK (1 line): Make one clear, low-friction request. "Worth a 5-min chat?" or "Reply 'yes' and I'll send the breakdown."
 4. SOCIAL PROOF / PS (1 line): Add a credential, result, or mutual connection reference that builds trust.
@@ -367,7 +368,7 @@ AUDIENCE: ${audience}`,
     "YouTube Description": `You are an SEO-optimized YouTube description writer. Write a description that ranks, hooks, and converts.
 
 DESCRIPTION STRUCTURE:
-1. ABOVE THE FOLD (first 2 lines — visible before "show more"):
+1. ABOVE THE FOLD (first 2 lines - visible before "show more"):
    - Hook line that makes someone want to watch
    - Include primary keyword naturally
 2. SUMMARY (3-5 sentences):
@@ -399,16 +400,16 @@ AUDIENCE: ${audience}`,
     "Instagram Caption": `You are an Instagram copywriter who drives engagement and saves.
 
 FORMAT:
-- LINE 1 (the hook — this is the ONLY visible line before "more"): Must be a thought-stopping statement, question, or bold claim. NO emoji in line 1.
+- LINE 1 (the hook - this is the ONLY visible line before "more"): Must be a thought-stopping statement, question, or bold claim. NO emoji in line 1.
 - LINES 2-5: 3-5 short paragraphs. Tell the story, share the insight, or make the argument.
 - LINE 6 (the CTA): End with a question that invites comments or a prompt to save/share.
-- HASHTAGS (at the end, after 2 line breaks): 5-8 hashtags — mix of 3 niche, 2-3 medium, 1-2 broad.
+- HASHTAGS (at the end, after 2 line breaks): 5-8 hashtags - mix of 3 niche, 2-3 medium, 1-2 broad.
 
 WRITING RULES:
 - Max 1-2 emojis in the body, and only where they add meaning
 - One idea per paragraph. Short lines. White space is engagement.
 - Use line breaks intentionally for emphasis and readability
-- NO "link in bio" in the caption — put that in the first comment
+- NO "link in bio" in the caption - put that in the first comment
 - Write conversationally, not like a brand
 
 TONE: ${tone}
@@ -418,9 +419,9 @@ AUDIENCE: ${audience}`,
     "Personal Brand Bio Update": `You are a personal branding copywriter. Write a 3-sentence bio that makes people want to work with, follow, or invest in this person.
 
 THE 3-SENTENCE FORMULA:
-SENTENCE 1 — Position + Unique Value: Who they are + what they do + what makes them different. Specific outcomes or niche.
-SENTENCE 2 — Proof + Credibility: Track record, interesting stat, notable achievement, or what they've built.
-SENTENCE 3 — Current Focus + CTA: What they're working on now + open to (collabs, clients, opportunities, etc.)
+SENTENCE 1 - Position + Unique Value: Who they are + what they do + what makes them different. Specific outcomes or niche.
+SENTENCE 2 - Proof + Credibility: Track record, interesting stat, notable achievement, or what they've built.
+SENTENCE 3 - Current Focus + CTA: What they're working on now + open to (collabs, clients, opportunities, etc.)
 
 ABSOLUTE RULES:
 - No buzzwords: "passionate about", "results-driven", "thought leader", "guru", "ninja"
@@ -442,9 +443,94 @@ export const generateFormat = async (
   strategy: ContentStrategy,
   rawInput: string,
 ): Promise<string> => {
-  const systemPrompt = getFormatPrompt(format, strategy);
+  const systemPrompt = `${getFormatPrompt(format, strategy)}
+
+IMPORTANT: Output ONLY the final content. No preamble ("Here's..."), no explanation, no markdown code fences, no meta commentary.`;
   return callGroq(systemPrompt, `Original input for context:\n${rawInput}`);
 };
+
+const sleep = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Removes common AI artifacts: markdown code fences, preambles ("Here's..."),
+ * wrapping quotation marks, and trailing meta commentary.
+ */
+export const cleanGeneratedContent = (raw: string): string => {
+  let text = raw.trim();
+
+  // Strip markdown code fences.
+  text = text
+    .replace(/^```[a-zA-Z]*\s*\n?/, "")
+    .replace(/\n?```\s*$/, "")
+    .trim();
+
+  // Strip one-line AI preambles before the actual content.
+  // Only matches short conversational openers ("Here's your post:", "Sure!",
+  // etc.) so genuine content lines are never affected.
+  const preamblePattern =
+    /^(?:sure|certainly|of course|okay|ok|absolutely|here(?:'s| is))\b[^\n]{0,72}[:!]\s*\n+/i;
+  if (preamblePattern.test(text)) {
+    text = text.replace(preamblePattern, "").trim();
+  }
+
+  // Unwrap content the model wrapped in quotes.
+  const wrapped = text.match(/^"([\s\S]+)"$/);
+  if (wrapped?.[1] && !wrapped[1].includes('"')) {
+    text = wrapped[1];
+  }
+  // Smart-quote variants.
+  const smartWrapped = text.match(/^[“”]([\s\S]+)[“”]$/);
+  if (smartWrapped?.[1]) {
+    text = smartWrapped[1];
+  }
+
+  return text.trim();
+};
+
+const generateFormatWithRetry = async (
+  format: ContentFormat,
+  strategy: ContentStrategy,
+  rawInput: string,
+  maxAttempts = 2,
+): Promise<string> => {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      const result = await generateFormat(format, strategy, rawInput);
+      const cleaned = cleanGeneratedContent(result);
+      if (cleaned.length >= MIN_VALID_OUTPUT_CHARS) return cleaned;
+      lastError = new Error("Output was too short");
+    } catch (error) {
+      lastError = error;
+    }
+    // Brief backoff before retrying.
+    if (attempt < maxAttempts - 1) await sleep(800 * (attempt + 1));
+  }
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("Generation failed");
+};
+
+const MIN_VALID_OUTPUT_CHARS = 40;
+
+/** Runs async tasks with bounded concurrency to avoid API rate limits. */
+async function runWithConcurrency<T>(
+  tasks: Array<() => Promise<T>>,
+  limit: number,
+): Promise<void> {
+  let nextIndex = 0;
+  const workers = Array.from(
+    { length: Math.min(limit, tasks.length) },
+    async () => {
+      while (nextIndex < tasks.length) {
+        const index = nextIndex++;
+        await tasks[index]!();
+      }
+    },
+  );
+  await Promise.all(workers);
+}
 
 export const generateAllFormats = async (
   selectedFormats: ContentFormat[],
@@ -452,14 +538,21 @@ export const generateAllFormats = async (
   rawInput: string,
   onProgress: (format: ContentFormat, content: string, error?: string) => void,
 ): Promise<void> => {
-  const results = selectedFormats.map(async (format) => {
+  // Two concurrent generations keeps Groq comfortably under rate limits.
+  const CONCURRENCY = 2;
+  const tasks = selectedFormats.map((format) => async () => {
     try {
-      const content = await generateFormat(format, strategy, rawInput);
+      const content = await generateFormatWithRetry(format, strategy, rawInput);
       onProgress(format, content);
-    } catch {
-      onProgress(format, "", "Generation failed");
+    } catch (error) {
+      onProgress(
+        format,
+        "",
+        error instanceof Error && error.message
+          ? error.message
+          : "Generation failed. Hit regenerate to retry.",
+      );
     }
   });
-
-  await Promise.allSettled(results);
+  await runWithConcurrency(tasks, CONCURRENCY);
 };

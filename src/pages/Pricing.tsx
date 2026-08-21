@@ -95,7 +95,7 @@ const plans = [
 const faqs = [
   {
     q: "When do payments go live?",
-    a: "Payments aren't active yet. You can sign up and use the free plan today. Paid plans will launch soon we'll notify you.",
+    a: "Payments aren't active yet. You can sign up and use the free plan today. Paid plans will launch soon, and we'll notify you when they do.",
   },
   {
     q: "What counts as a generation?",
@@ -111,7 +111,7 @@ const faqs = [
   },
   {
     q: "Is there a trial for paid plans?",
-    a: "We're considering a 7-day trial for Creator. Nothing confirmed yet follow along for updates.",
+    a: "We're considering a 7-day trial for Creator. Nothing confirmed yet, follow along for updates.",
   },
 ];
 
@@ -183,7 +183,7 @@ const Pricing = () => {
           <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-amber-50 border border-amber-200 px-4 py-2">
             <Clock className="h-3.5 w-3.5 text-amber-500" />
             <span className="font-sans text-xs text-amber-700 font-medium">
-              Payments not live yet free access for everyone now
+              Payments are not live yet. Free access for everyone right now.
             </span>
           </div>
         </motion.div>

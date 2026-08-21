@@ -33,31 +33,42 @@ export const OutputsSection = ({
   const [copiedAll, setCopiedAll] = useState(false);
 
   const completedCount = outputs.filter((o) => o.content).length;
+  const failedCount = outputs.filter((o) => o.error && !o.content).length;
   const totalCount = outputs.length;
-  const isLoading = generating && completedCount < totalCount;
+  const isLoading = generating && completedCount + failedCount < totalCount;
 
-  const handleCopyAll = () => {
-    const text = outputs
+  const buildExportText = () =>
+    outputs
       .filter((o) => o.content)
       .map((o) => `## ${FORMAT_ICONS[o.format]} ${o.format}\n\n${o.content}`)
       .join("\n\n---\n\n");
-    navigator.clipboard.writeText(text);
-    setCopiedAll(true);
-    toast.success("All outputs copied!");
-    setTimeout(() => setCopiedAll(false), 2000);
+
+  const handleCopyAll = async () => {
+    const text = buildExportText();
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedAll(true);
+      toast.success("All outputs copied!");
+      setTimeout(() => setCopiedAll(false), 2000);
+    } catch {
+      toast.error("Couldn't copy. Try the export button instead.");
+    }
   };
 
   const handleExportMarkdown = () => {
-    const text = outputs
-      .filter((o) => o.content)
-      .map((o) => `## ${FORMAT_ICONS[o.format]} ${o.format}\n\n${o.content}`)
-      .join("\n\n---\n\n");
+    const text = buildExportText();
     const header = `# Content Strategy\n\n**Core Message:** ${strategy.core_message}\n**Audience:** ${strategy.audience}\n**Tone:** ${strategy.tone}\n\n---\n\n`;
+    const slug =
+      strategy.core_message
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 40) || "content-outputs";
     const blob = new Blob([header + text], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "content-outputs.md";
+    a.download = `${slug}.md`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success("Exported as Markdown!");
@@ -67,7 +78,7 @@ export const OutputsSection = ({
     <div className="max-w-2xl mx-auto">
       {/* Top bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-        <div>
+        <div className="min-w-0">
           <h2 className="font-display text-xl text-stone-900">
             {isLoading
               ? `Generating ${completedCount}/${totalCount}...`
@@ -81,7 +92,7 @@ export const OutputsSection = ({
           {isLoading && (
             <div className="flex items-center gap-1.5 text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">
               <Sparkles className="h-3 w-3 animate-pulse" />
-              Parallel gen
+              Generating in batches
             </div>
           )}
           <Button
@@ -116,11 +127,28 @@ export const OutputsSection = ({
         </div>
       </div>
 
+      {/* Failed banner with retry-all */}
+      {!generating && failedCount > 0 && completedCount > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-4 flex flex-col sm:flex-row sm:items-center gap-3">
+          <p className="font-sans text-sm text-red-700 flex-1">
+            {failedCount} format{failedCount !== 1 ? "s" : ""} failed to generate.
+          </p>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => outputs.forEach((o) => o.error && !o.content && onRegenerate(o.format))}
+            className="shrink-0 rounded-xl border-red-300 text-red-600 hover:bg-red-100 font-sans text-xs gap-1.5"
+          >
+            <RotateCcw className="h-3.5 w-3.5" /> Retry all failed
+          </Button>
+        </div>
+      )}
+
       {/* Platform tips banner */}
       {completedCount > 0 && completedCount <= 3 && (
-        <div className="bg-gradient-to-r from-amber-50 to-stone-50 border border-amber-200/50 rounded-2xl p-4 mb-4">
+        <div className="bg-gradient-to-r from-amber-50 to-stone-50 border border-amber-200/50 rounded-2xl p-4 mb-4 hidden sm:block">
           <p className="font-sans text-xs font-semibold uppercase tracking-wider text-amber-600 mb-2">
-            📋 Publishing Tips
+            Publishing Tips
           </p>
           <div className="space-y-1.5">
             {outputs.filter((o) => o.content).map((o) => (
@@ -153,7 +181,7 @@ export const OutputsSection = ({
       {!isLoading && completedCount === totalCount && completedCount > 0 && (
         <div className="mt-6 bg-green-50 border border-green-200 rounded-2xl p-4 text-center">
           <p className="font-sans font-semibold text-green-800 text-sm">
-            All {totalCount} formats generated ✨
+            All {totalCount} formats generated
           </p>
           <p className="font-sans text-xs text-green-600 mt-0.5">
             Copy all, export as markdown, or regenerate individual formats.

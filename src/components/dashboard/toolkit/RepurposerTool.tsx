@@ -65,9 +65,9 @@ TARGET FORMAT RULES:
 ${targetRules}
 
 REPURPOSING RULES:
-1. Extract the CORE MESSAGE from the source — what's the one thing the reader must take away?
+1. Extract the CORE MESSAGE from the source - what's the one thing the reader must take away?
 2. Identify the BEST angle from the source that fits the target format
-3. Rewrite completely for the new format — do NOT just reformat the source
+3. Rewrite completely for the new format - do NOT just reformat the source
 4. Adapt the structure, pacing, and length to the target format's conventions
 5. ${voiceInstruction}
 6. Do NOT add placeholder text like [your name], [company], or [link]
@@ -82,7 +82,7 @@ Output only the final content, nothing else.`;
       );
       setOutput(sanitizeOutput(result));
     } catch {
-      toast.error("Groq is being slow — try again.");
+      toast.error("The AI service is busy. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -104,12 +104,12 @@ Output only the final content, nothing else.`;
           Content Repurposer
         </h3>
         <p className="font-sans text-sm text-stone-500">
-          Paste existing content and convert it to a different format — preserving the original voice.
+          Paste existing content and convert it to a different format - preserving the original voice.
         </p>
       </div>
 
       {/* Format selectors */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-400">
             From

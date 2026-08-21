@@ -80,7 +80,7 @@ export const StatsTab = () => {
     sourceCounts[src] = (sourceCounts[src] ?? 0) + 1;
   });
 
-  // Last 7 days activity — grouped from real project timestamps
+  // Last 7 days activity - grouped from real project timestamps
   const last7Days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (6 - i));
@@ -163,7 +163,7 @@ export const StatsTab = () => {
         <p className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-400 mb-4">
           This month
         </p>
-        <div className="flex items-center gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
           <div className="relative shrink-0 h-20 w-20">
             <svg className="h-20 w-20 -rotate-90" viewBox="0 0 80 80">
               <circle cx="40" cy="40" r="32" fill="none" stroke="#F0EBE3" strokeWidth="8" />
