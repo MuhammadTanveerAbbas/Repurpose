@@ -117,16 +117,16 @@ What makes me unique: ${answers[4]}`;
 
   const outputs: BioOutputItem[] = output
     ? [
-        { key: "linkedin", label: "💼 LinkedIn Bio", value: output.linkedin },
-        { key: "twitter", label: "🐦 Twitter/X Bio", value: output.twitter, charLimit: 160 },
-        { key: "tagline", label: "✨ Website Tagline", value: output.tagline, charLimit: 60 },
-        { key: "instagram", label: "📸 Instagram Bio", value: output.instagram, charLimit: 150 },
-        { key: "website_hero", label: "🚀 Hero Headline", value: output.website_hero, charLimit: 80 },
+        { key: "linkedin", label: "LinkedIn Bio", value: output.linkedin },
+        { key: "twitter", label: "Twitter/X Bio", value: output.twitter, charLimit: 160 },
+        { key: "tagline", label: "Website Tagline", value: output.tagline, charLimit: 60 },
+        { key: "instagram", label: "Instagram Bio", value: output.instagram, charLimit: 150 },
+        { key: "website_hero", label: "Hero Headline", value: output.website_hero, charLimit: 80 },
       ]
     : [];
 
   return (
-    <div className="bg-white border border-stone-100 rounded-2xl p-5 shadow-sm space-y-5">
+    <div className="bg-white border border-stone-100 rounded-2xl p-4 sm:p-5 shadow-sm space-y-5">
       <div>
         <h3 className="font-display text-lg text-stone-900 mb-1">
           Bio Builder

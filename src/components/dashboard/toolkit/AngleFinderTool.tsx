@@ -92,7 +92,7 @@ Return ONLY valid JSON:
   };
 
   return (
-    <div className="bg-white border border-stone-100 rounded-2xl p-5 shadow-sm space-y-5">
+        <div className="bg-white border border-stone-100 rounded-2xl p-4 sm:p-5 shadow-sm space-y-5">
       <div>
         <h3 className="font-display text-lg text-stone-900 mb-1">
           Content Angle Finder
@@ -106,7 +106,7 @@ Return ONLY valid JSON:
         <Label className="font-sans text-sm font-medium text-stone-700">
           Topic
         </Label>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Input
             placeholder='e.g. "Pricing your freelance services"'
             value={topic}
@@ -135,7 +135,7 @@ Return ONLY valid JSON:
       {angles.length > 0 && (
         <div className="space-y-3">
           {angles.map((angle, i) => {
-            const icon = FORMAT_ICONS[angle.format as ContentFormat] ?? "📝";
+            const tag = FORMAT_ICONS[angle.format as ContentFormat] ?? "—";
             return (
               <div
                 key={i}
@@ -148,7 +148,7 @@ Return ONLY valid JSON:
                         {angle.angle}
                       </span>
                       <span className="font-sans text-[10px] text-stone-400 bg-stone-100 px-2 py-0.5 rounded-full">
-                        {icon} {angle.format}
+                        {tag} · {angle.format}
                       </span>
                     </div>
                     <p className="font-sans text-xs text-stone-500 mb-2">

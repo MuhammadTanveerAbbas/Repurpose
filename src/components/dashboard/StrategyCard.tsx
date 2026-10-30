@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ALL_FORMATS, FORMAT_ICONS, FORMAT_PLATFORM_TIPS } from "@/lib/groq";
 import type { ContentStrategy, ContentFormat } from "@/lib/groq";
-import { ArrowLeft, Lightbulb, Target, Zap, MessageCircle } from "lucide-react";
+import { ArrowLeft, Lightbulb, Target, Zap, MessageCircle, Brain } from "lucide-react";
 import { sanitizeOutput } from "@/lib/sanitize";
 
 interface Props {
@@ -31,9 +31,9 @@ export const StrategyCard = ({
         <ArrowLeft className="h-3.5 w-3.5" /> Back
       </button>
 
-      <div className="bg-white border border-stone-100 rounded-2xl p-6 shadow-sm mb-4">
+      <div className="bg-white border border-stone-100 rounded-2xl p-4 sm:p-6 shadow-sm mb-4">
         <div className="flex items-center gap-2 mb-5">
-          <span className="text-lg">🧠</span>
+          <Brain className="h-5 w-5 text-amber-500" />
           <h2 className="font-display text-xl text-stone-900">
             Content Strategy
           </h2>
@@ -151,7 +151,7 @@ export const StrategyCard = ({
                   key={format}
                   onClick={() => onToggleFormat(format)}
                   className={cn(
-                    "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium font-sans border transition-all",
+                    "flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-medium font-sans border transition-all",
                     isSelected
                       ? "bg-primary border-primary text-white"
                       : "bg-white border-stone-200 text-stone-600 hover:border-stone-300",

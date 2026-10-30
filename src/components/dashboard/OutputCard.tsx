@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { FORMAT_ICONS, FORMAT_CHAR_LIMITS } from "@/lib/groq";
+import { FORMAT_CHAR_LIMITS } from "@/lib/groq";
 import type { GeneratedOutput } from "@/lib/groq";
 import { sanitizeOutput } from "@/lib/sanitize";
 import { Copy, RefreshCw, CheckCircle2, Sparkles, Download, TriangleAlert } from "lucide-react";
@@ -75,9 +75,6 @@ export const OutputCard = ({
       {/* Header */}
       <div className="flex items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-base shrink-0" aria-hidden="true">
-            {FORMAT_ICONS[output.format]}
-          </span>
           <span className="font-sans font-semibold text-sm text-stone-800 truncate">
             {output.format}
           </span>

@@ -44,7 +44,7 @@ export const ToolkitTab = () => {
   const [activeTool, setActiveTool] = useState<Tool>("repurposer");
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-3xl mx-auto">
       {/* Tool selector */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
         {TOOLS.map((t) => (

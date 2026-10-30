@@ -60,15 +60,15 @@ export const FORMAT_CHAR_LIMITS: Partial<Record<ContentFormat, number>> = {
 };
 
 export const FORMAT_ICONS: Record<ContentFormat, string> = {
-  "LinkedIn Post": "💼",
-  "LinkedIn Hook": "🪝",
-  "Twitter/X Thread": "🐦",
-  "Short-form Video Script": "🎬",
-  "Cold Email Draft": "📧",
-  "Newsletter Section": "📰",
-  "YouTube Description": "▶️",
-  "Instagram Caption": "📸",
-  "Personal Brand Bio Update": "👤",
+  "LinkedIn Post": "LI",
+  "LinkedIn Hook": "Hook",
+  "Twitter/X Thread": "X",
+  "Short-form Video Script": "Video",
+  "Cold Email Draft": "Email",
+  "Newsletter Section": "News",
+  "YouTube Description": "YT",
+  "Instagram Caption": "IG",
+  "Personal Brand Bio Update": "Bio",
 };
 
 export const FORMAT_PLATFORM_TIPS: Record<ContentFormat, string> = {

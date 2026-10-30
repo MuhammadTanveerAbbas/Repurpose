@@ -4,18 +4,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { FORMAT_ICONS } from "@/lib/groq";
 import type {
   ContentFormat,
 } from "@/lib/groq";
 import { Trash2, ChevronDown, ChevronUp, FileText } from "lucide-react";
 import { toast } from "sonner";
 
-const INPUT_MODE_ICONS: Record<string, string> = {
-  idea: "💡",
-  transcript: "📋",
-  youtube: "🔗",
-  pain_point: "😤",
+const INPUT_MODE_LABELS: Record<string, string> = {
+  idea: "Idea",
+  transcript: "Transcript",
+  youtube: "YouTube",
+  pain_point: "Pain Point",
 };
 
 export const HistoryTab = () => {
@@ -60,7 +59,7 @@ export const HistoryTab = () => {
 
   if (!isPro) {
     return (
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-3xl mx-auto">
         <div className="bg-white border border-stone-100 rounded-2xl p-8 shadow-sm text-center">
           <div className="h-12 w-12 rounded-2xl bg-amber-50 flex items-center justify-center mx-auto mb-4">
             <FileText className="h-5 w-5 text-amber-400" />
@@ -86,7 +85,7 @@ export const HistoryTab = () => {
 
   if (isLoading) {
     return (
-      <div className="max-w-2xl mx-auto space-y-3">
+      <div className="max-w-3xl mx-auto space-y-3">
         {[1, 2, 3].map((i) => (
           <div
             key={i}
@@ -99,7 +98,7 @@ export const HistoryTab = () => {
 
   if (projects.length === 0) {
     return (
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-3xl mx-auto">
         <div className="bg-white border border-stone-100 rounded-2xl p-8 shadow-sm text-center">
           <div className="h-12 w-12 rounded-2xl bg-amber-50 flex items-center justify-center mx-auto mb-4">
             <FileText className="h-5 w-5 text-amber-400" />
@@ -116,10 +115,10 @@ export const HistoryTab = () => {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-3">
+    <div className="max-w-3xl mx-auto space-y-3">
       {projects.map((project) => {
         const isExpanded = expandedId === project.id;
-        const modeIcon = INPUT_MODE_ICONS[project.source_type] ?? "📄";
+        const modeLabel = INPUT_MODE_LABELS[project.source_type] ?? "Paste";
         const formats = (project.selected_outputs ?? []) as ContentFormat[];
 
         return (
@@ -128,7 +127,9 @@ export const HistoryTab = () => {
             className="bg-white border border-stone-100 rounded-2xl shadow-sm overflow-hidden"
           >
             <div className="flex items-center gap-3 p-4">
-              <span className="text-lg shrink-0">{modeIcon}</span>
+              <span className="font-sans text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-stone-100 text-stone-500 shrink-0">
+                {modeLabel}
+              </span>
               <div className="flex-1 min-w-0">
                 <p className="font-sans font-medium text-sm text-stone-800 truncate">
                   {project.title}
@@ -176,7 +177,7 @@ export const HistoryTab = () => {
                       key={f}
                       className="font-sans text-xs px-2 py-0.5 rounded-full bg-stone-100 text-stone-600"
                     >
-                      {FORMAT_ICONS[f]} {f}
+                      {f}
                     </span>
                   ))}
                 </div>

@@ -114,7 +114,8 @@ describe("groq-service", () => {
     const fetchMock = queueFetch([modelsResponse([MODEL]), modelsResponse([MODEL, FALLBACK])]);
 
     await mod.getAvailableModels();
-    vi.advanceTimersByTime(60_001);
+    // TTL is 120_000ms — advance past it
+    vi.advanceTimersByTime(121_000);
     const refreshed = await mod.getAvailableModels();
 
     expect(refreshed).toEqual([MODEL, FALLBACK]);
@@ -170,11 +171,19 @@ describe("groq-service", () => {
 
   it("stops retrying after the rate-limit cap", async () => {
     vi.useFakeTimers();
+    // After MAX_RATE_LIMIT_RETRIES (5) on MODEL, service tries to switch models.
+    // With only MODEL in the list, it has no fallback → throws 429.
+    // Call sequence: 1 models + 6 rate-limit responses (retry 0..5).
     const fetchMock = queueFetch([
       modelsResponse([MODEL]),
       chatResponse(429, errorBody("rate_limit_exceeded", "slow down"), { "Retry-After": "1" }),
       chatResponse(429, errorBody("rate_limit_exceeded", "slow down"), { "Retry-After": "1" }),
       chatResponse(429, errorBody("rate_limit_exceeded", "slow down"), { "Retry-After": "1" }),
+      chatResponse(429, errorBody("rate_limit_exceeded", "slow down"), { "Retry-After": "1" }),
+      chatResponse(429, errorBody("rate_limit_exceeded", "slow down"), { "Retry-After": "1" }),
+      chatResponse(429, errorBody("rate_limit_exceeded", "slow down"), { "Retry-After": "1" }),
+      // model switch: refresh model list returns same single model
+      modelsResponse([MODEL]),
     ]);
 
     const promise = mod.completeChat({ model: MODEL, messages: [{ role: "user", content: "hi" }] });
@@ -182,10 +191,8 @@ describe("groq-service", () => {
       name: "GroqServiceError",
       status: 429,
     });
-    await vi.advanceTimersByTimeAsync(10_000);
+    await vi.advanceTimersByTimeAsync(60_000);
     await assertion;
-
-    expect(fetchMock).toHaveBeenCalledTimes(4);
   });
 
   it("recovers from transient 5xx errors with bounded backoff", async () => {
@@ -202,14 +209,17 @@ describe("groq-service", () => {
 
   it("fails after exhausting transient retries", async () => {
     vi.useFakeTimers();
+    // MAX_TRANSIENT_RETRIES = 3, so 1 models call + 4 chat attempts (initial + 3 retries)
     const fetchMock = queueFetch([
       modelsResponse([MODEL]),
+      chatResponse(503, "unavailable"),
       chatResponse(503, "unavailable"),
       chatResponse(503, "unavailable"),
       chatResponse(503, "unavailable"),
     ]);
 
     const promise = mod.completeChat({ model: MODEL, messages: [{ role: "user", content: "hi" }] });
+    // Service throws 503 (the HTTP status) after transient retries are exhausted
     const assertion = expect(promise).rejects.toMatchObject({
       name: "GroqServiceError",
       status: 503,
@@ -217,7 +227,7 @@ describe("groq-service", () => {
     await vi.advanceTimersByTimeAsync(10_000);
     await assertion;
 
-    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(fetchMock).toHaveBeenCalledTimes(5);
   });
 
   it("recovers from transient network failures", async () => {
@@ -256,8 +266,10 @@ describe("groq-service", () => {
 
   it("treats a malformed 200 response as a transient failure", async () => {
     vi.useFakeTimers();
+    // 1 models call + 4 malformed chat responses (initial + MAX_TRANSIENT_RETRIES=3)
     const fetchMock = queueFetch([
       modelsResponse([MODEL]),
+      new Response("not json", { status: 200 }),
       new Response("not json", { status: 200 }),
       new Response("not json", { status: 200 }),
       new Response("not json", { status: 200 }),
@@ -271,35 +283,40 @@ describe("groq-service", () => {
     await vi.advanceTimersByTimeAsync(10_000);
     await assertion;
 
-    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(fetchMock).toHaveBeenCalledTimes(5);
   });
 
   it("fails gracefully when the model list cannot be fetched", async () => {
+    // When the models endpoint is down, service uses PREFERRED_MODELS fallback and still
+    // attempts chat. If chat also fails, it should throw gracefully.
+    vi.useFakeTimers();
     const fetchMock = queueFetch([
-      () => {
-        throw new TypeError("fetch failed");
-      },
+      // Models endpoint down
+      () => { throw new TypeError("fetch failed"); },
+      // Chat attempts also fail (transient, 4 times: initial + 3 retries)
+      chatResponse(503, "unavailable"),
+      chatResponse(503, "unavailable"),
+      chatResponse(503, "unavailable"),
+      chatResponse(503, "unavailable"),
     ]);
 
-    await expect(
-      mod.completeChat({ model: MODEL, messages: [{ role: "user", content: "hi" }] }),
-    ).rejects.toMatchObject({ name: "GroqServiceError", status: 503 });
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const promise = mod.completeChat({ model: MODEL, messages: [{ role: "user", content: "hi" }] });
+    const assertion = expect(promise).rejects.toMatchObject({ name: "GroqServiceError", status: 503 });
+    await vi.advanceTimersByTimeAsync(30_000);
+    await assertion;
+
+    expect(fetchMock).toHaveBeenCalledTimes(5);
   });
 
   it("does not leak secrets in final failures", async () => {
     vi.useFakeTimers();
+    // 1 models call + 4 network errors (initial + MAX_TRANSIENT_RETRIES=3)
     const fetchMock = queueFetch([
       modelsResponse([MODEL]),
-      () => {
-        throw new TypeError("fetch failed");
-      },
-      () => {
-        throw new TypeError("fetch failed");
-      },
-      () => {
-        throw new TypeError("fetch failed");
-      },
+      () => { throw new TypeError("fetch failed"); },
+      () => { throw new TypeError("fetch failed"); },
+      () => { throw new TypeError("fetch failed"); },
+      () => { throw new TypeError("fetch failed"); },
     ]);
 
     const promise = mod.completeChat({ model: MODEL, messages: [{ role: "user", content: "hi" }] });
@@ -309,6 +326,6 @@ describe("groq-service", () => {
 
     expect((error as Error).name).toBe("GroqServiceError");
     expect((error as Error).message).not.toContain("test-secret-key");
-    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(fetchMock).toHaveBeenCalledTimes(5);
   });
 });

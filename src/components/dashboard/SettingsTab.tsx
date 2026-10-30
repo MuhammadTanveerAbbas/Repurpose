@@ -84,7 +84,7 @@ export const SettingsTab = () => {
   }, [user, signOut, navigate]);
 
   return (
-    <div className="max-w-xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       {/* Plan status */}
       <div className="bg-white border border-stone-100 rounded-2xl p-5 shadow-sm">
         <p className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-400 mb-3">

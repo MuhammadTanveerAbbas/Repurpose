@@ -26,7 +26,8 @@ const Dashboard = () => {
         activeTab={activeTab}
         onTabChange={(key) => setActiveTab(key as Tab)}
       />
-      <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
+      {/* pb-20 on mobile to clear the fixed bottom tab bar */}
+      <main className="mx-auto max-w-5xl px-4 py-5 pb-24 sm:px-6 sm:py-6 md:pb-8">
         {activeTab === "generate" && <GenerateTab />}
         {activeTab === "stats" && <StatsTab />}
         {activeTab === "toolkit" && <ToolkitTab />}

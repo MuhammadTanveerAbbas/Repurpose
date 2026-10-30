@@ -33,7 +33,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     lastFetchedUserId.current = nextUser.id;
 
     const metadataName =
-      nextUser.user_metadata?.full_name ?? nextUser.user_metadata?.name ?? null;
+      nextUser.user_metadata?.full_name ??
+      nextUser.user_metadata?.name ??
+      nextUser.user_metadata?.display_name ??
+      (nextUser.user_metadata?.given_name || nextUser.user_metadata?.family_name
+        ? [nextUser.user_metadata?.given_name, nextUser.user_metadata?.family_name]
+            .filter(Boolean)
+            .join(" ")
+        : null) ??
+      null;
 
     const selectColumns = "id, full_name, plan, projects_used_this_month, stripe_customer_id";
 
@@ -44,7 +52,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .single();
 
     if (!error && data) {
-      setProfile(data as Profile);
+      // Backfill full_name from OAuth metadata if missing in DB
+      if (!data.full_name && metadataName) {
+        const { data: updated } = await supabase
+          .from("profiles")
+          .update({ full_name: metadataName })
+          .eq("id", nextUser.id)
+          .select(selectColumns)
+          .single();
+        setProfile((updated ?? data) as Profile);
+      } else {
+        setProfile(data as Profile);
+      }
       return;
     }
 

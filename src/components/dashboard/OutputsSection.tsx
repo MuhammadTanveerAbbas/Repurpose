@@ -6,7 +6,7 @@ import type {
   ContentFormat,
   GeneratedOutput,
 } from "@/lib/groq";
-import { FORMAT_ICONS, FORMAT_PLATFORM_TIPS } from "@/lib/groq";
+import { FORMAT_PLATFORM_TIPS } from "@/lib/groq";
 import { Download, Copy, RotateCcw, Sparkles } from "lucide-react";
 import { sanitizeOutput } from "@/lib/sanitize";
 import { toast } from "sonner";
@@ -40,7 +40,7 @@ export const OutputsSection = ({
   const buildExportText = () =>
     outputs
       .filter((o) => o.content)
-      .map((o) => `## ${FORMAT_ICONS[o.format]} ${o.format}\n\n${o.content}`)
+      .map((o) => `## ${o.format}\n\n${o.content}`)
       .join("\n\n---\n\n");
 
   const handleCopyAll = async () => {
@@ -75,7 +75,7 @@ export const OutputsSection = ({
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-3xl mx-auto">
       {/* Top bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
         <div className="min-w-0">
@@ -153,7 +153,7 @@ export const OutputsSection = ({
           <div className="space-y-1.5">
             {outputs.filter((o) => o.content).map((o) => (
               <p key={o.format} className="font-sans text-xs text-stone-600">
-                <span className="font-medium">{FORMAT_ICONS[o.format]} {o.format}:</span> {FORMAT_PLATFORM_TIPS[o.format]}
+                <span className="font-medium">{o.format}:</span> {FORMAT_PLATFORM_TIPS[o.format]}
               </p>
             ))}
           </div>

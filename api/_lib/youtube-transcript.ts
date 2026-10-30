@@ -1,17 +1,24 @@
-// YouTube transcript crawler with layered fallback strategies:
-//   1. Watch-page scrape (extracts ytInitialPlayerResponse caption tracks)
-//   2. InnerTube player API (mobile client, bypasses most consent walls)
-//   3. Community transcript API (last resort)
+// YouTube transcript crawler — fast, reliable, serverless-friendly.
+//
+// Strategy: watch-page scrape extracts caption track URLs from
+// ytInitialPlayerResponse. YouTube blocks datacenter IPs from the timedtext
+// endpoint (returns 200 with empty body), so we race direct fetch vs CORS
+// proxies simultaneously and take the first non-empty response.
 
 const WATCH_URL = "https://www.youtube.com/watch";
-const INNERTUBE_PLAYER_URL = "https://www.youtube.com/youtubei/v1/player";
-const FALLBACK_API_URL = "https://yt-transcript-api.vercel.app/api/transcript";
 
-const FETCH_TIMEOUT_MS = 12_000;
+// CORS proxies fetch from their own IPs (not blocked by YouTube).
+const CORS_PROXIES = [
+  (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  (url: string) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+];
+
+const PAGE_TIMEOUT_MS = 8_000;
+const CAPTION_TIMEOUT_MS = 8_000;
 const MAX_TRANSCRIPT_CHARS = 80_000;
 
 const BROWSER_UA =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36";
 
 export interface TranscriptSegment {
   text: string;
@@ -22,12 +29,11 @@ export interface TranscriptSegment {
 export interface TranscriptResult {
   segments: TranscriptSegment[];
   language: string;
-  source: "watch-page" | "innertube" | "fallback-api";
+  source: "watch-page" | "proxy" | "fallback-api";
 }
 
 export class TranscriptError extends Error {
   status: number;
-
   constructor(message: string, status: number) {
     super(message);
     this.name = "TranscriptError";
@@ -43,7 +49,6 @@ const sleep = (ms: number): Promise<void> =>
 // ---------------------------------------------------------------------------
 
 const VIDEO_ID_RE = /^[\w-]{11}$/;
-
 const VIDEO_ID_PATTERNS = [
   /(?:youtube\.com\/watch\b[^#]*?[?&]v=)([\w-]{11})/,
   /(?:youtu\.be\/)([\w-]{11})/,
@@ -71,21 +76,15 @@ export function extractVideoId(input: string): string | null {
 async function fetchWithTimeout(
   url: string,
   init: RequestInit = {},
-  timeoutMs = FETCH_TIMEOUT_MS,
+  timeoutMs: number,
 ): Promise<Response> {
   return fetch(url, { ...init, signal: AbortSignal.timeout(timeoutMs) });
 }
 
 const NAMED_ENTITIES: Record<string, string> = {
-  amp: "&",
-  lt: "<",
-  gt: ">",
-  quot: '"',
-  apos: "'",
-  nbsp: " ",
+  amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ",
 };
 
-/** Decode HTML entities found inside YouTube caption payloads. */
 export function decodeHtmlEntities(text: string): string {
   if (!text.includes("&")) return text;
   return text.replace(/&(#x?[0-9a-fA-F]+|[a-zA-Z]+);/g, (entity, body: string) => {
@@ -102,50 +101,29 @@ export function decodeHtmlEntities(text: string): string {
 }
 
 export function cleanCaptionText(raw: string): string {
-  return decodeHtmlEntities(raw)
-    .replace(/<[^>]*>/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+  return decodeHtmlEntities(raw).replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
 }
 
-/**
- * Extract a balanced JSON object that follows a JS assignment marker such as
- * "ytInitialPlayerResponse = ". Regex alone cannot safely bound the object.
- */
 export function extractJsonAfter(html: string, marker: string): unknown | null {
   const startIdx = html.indexOf(marker);
   if (startIdx === -1) return null;
   const openBrace = html.indexOf("{", startIdx + marker.length);
   if (openBrace === -1) return null;
-
-  let depth = 0;
-  let inString = false;
-  let escaped = false;
-
+  let depth = 0, inString = false, escaped = false;
   for (let i = openBrace; i < html.length; i++) {
     const char = html[i];
     if (inString) {
-      if (escaped) {
-        escaped = false;
-      } else if (char === "\\") {
-        escaped = true;
-      } else if (char === '"') {
-        inString = false;
-      }
+      if (escaped) escaped = false;
+      else if (char === "\\") escaped = true;
+      else if (char === '"') inString = false;
       continue;
     }
-    if (char === '"') {
-      inString = true;
-    } else if (char === "{") {
-      depth += 1;
-    } else if (char === "}") {
+    if (char === '"') inString = true;
+    else if (char === "{") depth += 1;
+    else if (char === "}") {
       depth -= 1;
       if (depth === 0) {
-        try {
-          return JSON.parse(html.slice(openBrace, i + 1));
-        } catch {
-          return null;
-        }
+        try { return JSON.parse(html.slice(openBrace, i + 1)); } catch { return null; }
       }
     }
   }
@@ -153,12 +131,11 @@ export function extractJsonAfter(html: string, marker: string): unknown | null {
 }
 
 // ---------------------------------------------------------------------------
-// Caption payload parsers
+// Caption parsers
 // ---------------------------------------------------------------------------
 
 interface Json3Event {
-  tStartMs?: number;
-  dDurationMs?: number;
+  tStartMs?: number; dDurationMs?: number;
   segs?: Array<{ utf8?: string }>;
 }
 
@@ -178,9 +155,7 @@ function parseJson3(body: string): TranscriptSegment[] | null {
       });
     }
     return segments.length > 0 ? segments : null;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
 function parseTimedTextXml(body: string): TranscriptSegment[] | null {
@@ -199,6 +174,10 @@ function parseTimedTextXml(body: string): TranscriptSegment[] | null {
   return segments.length > 0 ? segments : null;
 }
 
+// ---------------------------------------------------------------------------
+// Caption content fetch — races direct + proxies in parallel
+// ---------------------------------------------------------------------------
+
 interface CaptionTrack {
   baseUrl?: string;
   languageCode?: string;
@@ -207,11 +186,9 @@ interface CaptionTrack {
 
 interface PlayerResponseShape {
   captions?: {
-    playerCaptionsTracklistRenderer?: {
-      captionTracks?: CaptionTrack[];
-    };
+    playerCaptionsTracklistRenderer?: { captionTracks?: CaptionTrack[] };
   };
-  playabilityStatus?: { status?: string; reason?: string };
+  playabilityStatus?: { status?: string };
 }
 
 function pickTrack(tracks: CaptionTrack[]): CaptionTrack | null {
@@ -221,138 +198,87 @@ function pickTrack(tracks: CaptionTrack[]): CaptionTrack | null {
   return english ?? englishAsr ?? tracks[0];
 }
 
-async function fetchSegmentsFromTrack(
-  track: CaptionTrack,
+/**
+ * Try fetching caption content from multiple sources simultaneously.
+ * YouTube blocks datacenter IPs (returns empty body), so we race direct
+ * fetch against CORS proxies and take the first non-empty response.
+ */
+async function fetchCaptionContent(
+  baseUrl: string,
 ): Promise<TranscriptSegment[] | null> {
-  if (!track.baseUrl) return null;
-  const base = track.baseUrl.replace(/^http:/, "https:");
+  const cleanUrl = baseUrl.replace(/^http:/, "https:");
 
-  // json3 is compact and reliable; fall back to the default XML payload.
   for (const suffix of ["&fmt=json3", ""]) {
-    try {
-      const res = await fetchWithTimeout(`${base}${suffix}`, {
+    const fullUrl = `${cleanUrl}${suffix}`;
+
+    // Build all fetch attempts for this URL
+    const attempts: Array<Promise<string>> = [
+      // Direct fetch
+      fetchWithTimeout(fullUrl, {
         headers: { "User-Agent": BROWSER_UA },
-      });
-      if (!res.ok) continue;
-      const body = await res.text();
-      const segments = suffix ? parseJson3(body) : parseTimedTextXml(body) ?? parseJson3(body);
+      }, CAPTION_TIMEOUT_MS)
+        .then((r) => r.ok ? r.text() : "")
+        .catch(() => ""),
+      // CORS proxies
+      ...CORS_PROXIES.map((proxyFn) =>
+        fetchWithTimeout(proxyFn(fullUrl), {
+          headers: { "User-Agent": BROWSER_UA },
+        }, CAPTION_TIMEOUT_MS)
+          .then((r) => r.ok ? r.text() : "")
+          .catch(() => ""),
+      ),
+    ];
+
+    // Race all attempts — first non-empty body wins
+    const results = await Promise.allSettled(attempts);
+    for (const result of results) {
+      if (result.status !== "fulfilled") continue;
+      const body = result.value;
+      if (!body || body.length === 0) continue;
+
+      // Try both parsers regardless of suffix — proxies may return either format
+      const segments = parseJson3(body) ?? parseTimedTextXml(body);
       if (segments && segments.length > 0) return segments;
-    } catch {
-      // Try the next format.
     }
   }
+
   return null;
 }
 
 // ---------------------------------------------------------------------------
-// Strategy 1: watch-page scrape
+// Strategy: watch-page scrape
 // ---------------------------------------------------------------------------
 
-async function fetchViaWatchPage(videoId: string): Promise<TranscriptSegment[] | null> {
-  const res = await fetchWithTimeout(`${WATCH_URL}?v=${videoId}&hl=en&has_verified=1`, {
-    headers: {
-      "User-Agent": BROWSER_UA,
-      "Accept-Language": "en-US,en;q=0.9",
-      Cookie: "CONSENT=YES+cb; SOCS=CAI",
+async function fetchViaWatchPage(
+  videoId: string,
+): Promise<TranscriptSegment[] | null> {
+  const res = await fetchWithTimeout(
+    `${WATCH_URL}?v=${videoId}&hl=en&has_verified=1`,
+    {
+      headers: {
+        "User-Agent": BROWSER_UA,
+        "Accept-Language": "en-US,en;q=0.9",
+        Cookie: "CONSENT=YES+cb; SOCS=CAI",
+      },
     },
-  });
+    PAGE_TIMEOUT_MS,
+  );
   if (!res.ok) return null;
 
   const html = await res.text();
-  const playerResponse = extractJsonAfter(html, "ytInitialPlayerResponse") as PlayerResponseShape | null;
+  const playerResponse = extractJsonAfter(
+    html,
+    "ytInitialPlayerResponse",
+  ) as PlayerResponseShape | null;
+
   const tracks =
     playerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks ?? null;
-  if (!tracks) return null;
+  if (!tracks || tracks.length === 0) return null;
 
   const track = pickTrack(tracks);
-  if (!track) return null;
-  return fetchSegmentsFromTrack(track);
-}
+  if (!track?.baseUrl) return null;
 
-// ---------------------------------------------------------------------------
-// Strategy 2: InnerTube player API
-// ---------------------------------------------------------------------------
-
-const INNERTUBE_CLIENTS = [
-  {
-    clientName: "ANDROID",
-    clientVersion: "19.09.37",
-    userAgent: "com.google.android.youtube/19.09.37 (Linux; U; Android 14) gzip",
-  },
-  {
-    clientName: "WEB",
-    clientVersion: "2.20240401.00.00",
-    userAgent: BROWSER_UA,
-  },
-];
-
-async function fetchViaInnerTube(videoId: string): Promise<TranscriptSegment[] | null> {
-  for (const client of INNERTUBE_CLIENTS) {
-    try {
-      const res = await fetchWithTimeout(INNERTUBE_PLAYER_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "User-Agent": client.userAgent,
-        },
-        body: JSON.stringify({
-          context: {
-            client: {
-              clientName: client.clientName,
-              clientVersion: client.clientVersion,
-              hl: "en",
-              gl: "US",
-            },
-          },
-          videoId,
-          contentCheckOk: true,
-          racyCheckOk: true,
-        }),
-      });
-      if (!res.ok) continue;
-
-      const data = (await res.json().catch(() => null)) as PlayerResponseShape | null;
-      const playability = data?.playabilityStatus?.status;
-      if (playability && playability !== "OK") continue;
-
-      const tracks = data?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
-      if (!Array.isArray(tracks)) continue;
-
-      const track = pickTrack(tracks);
-      const segments = track ? await fetchSegmentsFromTrack(track) : null;
-      if (segments) return segments;
-    } catch {
-      // Try the next client.
-    }
-  }
-  return null;
-}
-
-// ---------------------------------------------------------------------------
-// Strategy 3: community fallback API
-// ---------------------------------------------------------------------------
-
-async function fetchViaFallbackApi(videoId: string): Promise<TranscriptSegment[] | null> {
-  try {
-    const res = await fetchWithTimeout(`${FALLBACK_API_URL}?videoId=${videoId}`);
-    if (!res.ok) return null;
-    const data = (await res.json()) as unknown;
-    if (!Array.isArray(data)) return null;
-    const segments = data
-      .map((item) => {
-        const entry = item as { text?: string; offset?: number; start?: number; duration?: number };
-        const text = cleanCaptionText(entry.text ?? "");
-        return {
-          text,
-          start: entry.offset ?? entry.start ?? 0,
-          duration: entry.duration ?? 0,
-        };
-      })
-      .filter((s) => s.text.length > 0);
-    return segments.length > 0 ? segments : null;
-  } catch {
-    return null;
-  }
+  return fetchCaptionContent(track.baseUrl);
 }
 
 // ---------------------------------------------------------------------------
@@ -370,39 +296,29 @@ function truncate(segments: TranscriptSegment[]): TranscriptSegment[] {
   return result;
 }
 
-/**
- * Crawl the transcript for a YouTube video using layered strategies.
- * Throws TranscriptError when every strategy fails or the video is unusable.
- */
-export async function fetchTranscript(videoId: string): Promise<TranscriptResult> {
+export async function fetchTranscript(
+  videoId: string,
+): Promise<TranscriptResult> {
   if (!VIDEO_ID_RE.test(videoId)) {
     throw new TranscriptError("Invalid video ID", 400);
   }
 
-  const strategies: Array<{
-    name: TranscriptResult["source"];
-    run: () => Promise<TranscriptSegment[] | null>;
-  }> = [
-    { name: "watch-page", run: () => fetchViaWatchPage(videoId) },
-    { name: "innertube", run: () => fetchViaInnerTube(videoId) },
-    { name: "fallback-api", run: () => fetchViaFallbackApi(videoId) },
-  ];
-
-  for (const strategy of strategies) {
-    try {
-      const segments = await strategy.run();
-      if (segments && segments.length > 0) {
-        return { segments: truncate(segments), language: "en", source: strategy.name };
-      }
-    } catch (error) {
-      if (error instanceof TranscriptError) throw error;
-      // Network hiccups between strategies: brief pause, then keep going.
-      await sleep(300);
+  try {
+    const segments = await fetchViaWatchPage(videoId);
+    if (segments && segments.length > 0) {
+      return {
+        segments: truncate(segments),
+        language: "en",
+        source: "watch-page",
+      };
     }
+  } catch (error) {
+    if (error instanceof TranscriptError) throw error;
+    // Fall through to error
   }
 
   throw new TranscriptError(
-    "No transcript available for this video. It may have captions disabled.",
+    "No transcript available for this video. Captions may be disabled or the video may be private.",
     404,
   );
 }

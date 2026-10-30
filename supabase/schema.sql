@@ -1,5 +1,5 @@
 -- ============================================================
---  Repurpose AI - Database Schema
+--  Repurpose AI Database Schema
 --  Safe to re-run: all statements use IF NOT EXISTS / OR REPLACE
 --  Run in: Supabase Dashboard → SQL Editor → Run
 -- ============================================================
@@ -66,7 +66,7 @@ END $$;
 
 
 -- ─── SUBSCRIPTIONS ───────────────────────────────────────────
--- All writes are done server-side via service role (Stripe webhook).
+-- All writes done server-side via service role (Stripe webhook).
 -- Users can only read their own subscription.
 
 CREATE TABLE IF NOT EXISTS public.subscriptions (
@@ -86,9 +86,15 @@ CREATE TABLE IF NOT EXISTS public.subscriptions (
 ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
 
 DO $$ BEGIN
+  -- Users can read their own subscription
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'subscriptions' AND policyname = 'Users can view own subscription') THEN
     CREATE POLICY "Users can view own subscription" ON public.subscriptions
       FOR SELECT USING (auth.uid() = user_id);
+  END IF;
+  -- Service role (Stripe webhook) can insert/update/delete
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'subscriptions' AND policyname = 'Service role can manage subscriptions') THEN
+    CREATE POLICY "Service role can manage subscriptions" ON public.subscriptions
+      FOR ALL USING (auth.role() = 'service_role');
   END IF;
 END $$;
 
@@ -106,8 +112,8 @@ BEGIN
 END;
 $$;
 
-DROP TRIGGER IF EXISTS update_profiles_updated_at     ON public.profiles;
-DROP TRIGGER IF EXISTS update_projects_updated_at     ON public.projects;
+DROP TRIGGER IF EXISTS update_profiles_updated_at      ON public.profiles;
+DROP TRIGGER IF EXISTS update_projects_updated_at      ON public.projects;
 DROP TRIGGER IF EXISTS update_subscriptions_updated_at ON public.subscriptions;
 
 CREATE TRIGGER update_profiles_updated_at
@@ -124,6 +130,8 @@ CREATE TRIGGER update_subscriptions_updated_at
 
 
 -- ─── AUTO-CREATE PROFILE ON SIGNUP ───────────────────────────
+-- Saves full_name from OAuth (Google/GitHub) or email signup metadata.
+-- Tries all known metadata keys so it works across auth providers.
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER
@@ -131,10 +139,28 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
+DECLARE
+  resolved_name TEXT;
 BEGIN
-  INSERT INTO public.profiles (id, full_name)
-  VALUES (NEW.id, NEW.raw_user_meta_data->>'full_name')
-  ON CONFLICT (id) DO NOTHING;
+  -- Resolve full name from multiple possible metadata keys in priority order
+  resolved_name := COALESCE(
+    NULLIF(TRIM(NEW.raw_user_meta_data->>'full_name'), ''),
+    NULLIF(TRIM(NEW.raw_user_meta_data->>'name'), ''),
+    NULLIF(TRIM(NEW.raw_user_meta_data->>'display_name'), ''),
+    NULLIF(TRIM(
+      CONCAT_WS(' ',
+        NULLIF(TRIM(NEW.raw_user_meta_data->>'given_name'), ''),
+        NULLIF(TRIM(NEW.raw_user_meta_data->>'family_name'), '')
+      )
+    ), ''),
+    NULL
+  );
+
+  INSERT INTO public.profiles (id, full_name, plan, projects_used_this_month)
+  VALUES (NEW.id, resolved_name, 'free', 0)
+  ON CONFLICT (id) DO UPDATE
+    SET full_name = COALESCE(EXCLUDED.full_name, public.profiles.full_name);
+
   RETURN NEW;
 END;
 $$;
@@ -215,8 +241,15 @@ $$;
 
 -- ─── INDEXES ─────────────────────────────────────────────────
 
-CREATE INDEX IF NOT EXISTS idx_projects_user_id                    ON public.projects(user_id);
-CREATE INDEX IF NOT EXISTS idx_projects_created_at                 ON public.projects(created_at DESC);
+-- Projects
+CREATE INDEX IF NOT EXISTS idx_projects_user_id         ON public.projects(user_id);
+CREATE INDEX IF NOT EXISTS idx_projects_created_at      ON public.projects(created_at DESC);
+-- Composite index speeds up per-user history queries sorted by date
+CREATE INDEX IF NOT EXISTS idx_projects_user_created    ON public.projects(user_id, created_at DESC);
+
+-- Subscriptions
 CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id               ON public.subscriptions(user_id);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_stripe_subscription_id ON public.subscriptions(stripe_subscription_id);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_status                ON public.subscriptions(status);
+-- Composite index for webhook lookups by customer + status
+CREATE INDEX IF NOT EXISTS idx_subscriptions_customer_status       ON public.subscriptions(stripe_customer_id, status);

@@ -5,6 +5,7 @@ import {
   ChevronRight,
   ChevronDown,
   Check,
+  Minus,
   Lightbulb,
   FileText,
   Link as LinkIcon,
@@ -12,6 +13,16 @@ import {
   Sparkles,
   Copy,
   Download,
+  Zap,
+  KeyRound,
+  Globe,
+  CalendarClock,
+  Layers,
+  Brain,
+  Pencil,
+  FileDown,
+  History,
+  Youtube,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Navbar } from "@/components/Navbar";
@@ -99,18 +110,61 @@ const formats = [
 
 const comparisonFeatures = [
   {
+    icon: CalendarClock,
     feature: "Generations per month",
     free: "5",
     creator: "Unlimited",
     pro: "Unlimited",
   },
-  { feature: "Input modes", free: "All 4", creator: "All 4", pro: "All 4" },
-  { feature: "Output formats", free: "All 9", creator: "All 9", pro: "All 9" },
-  { feature: "AI strategy analysis", free: "✓", creator: "✓", pro: "✓" },
-  { feature: "Inline editing + regenerate", free: "✓", creator: "✓", pro: "✓" },
-  { feature: "Copy All / Export .md", free: "✓", creator: "✓", pro: "✓" },
-  { feature: "Project history", free: "-", creator: "-", pro: "✓" },
-  { feature: "YouTube transcript fetch", free: "✓", creator: "✓", pro: "✓" },
+  {
+    icon: Layers,
+    feature: "Input modes",
+    free: "All 4",
+    creator: "All 4",
+    pro: "All 4",
+  },
+  {
+    icon: FileText,
+    feature: "Output formats",
+    free: "All 9",
+    creator: "All 9",
+    pro: "All 9",
+  },
+  {
+    icon: Brain,
+    feature: "AI strategy analysis",
+    free: true,
+    creator: true,
+    pro: true,
+  },
+  {
+    icon: Pencil,
+    feature: "Inline edit + regenerate",
+    free: true,
+    creator: true,
+    pro: true,
+  },
+  {
+    icon: FileDown,
+    feature: "Copy All / Export .md",
+    free: true,
+    creator: true,
+    pro: true,
+  },
+  {
+    icon: History,
+    feature: "Project history",
+    free: false,
+    creator: false,
+    pro: true,
+  },
+  {
+    icon: Youtube,
+    feature: "YouTube transcript fetch",
+    free: true,
+    creator: true,
+    pro: true,
+  },
 ];
 
 const Index = () => {
@@ -264,7 +318,7 @@ const Index = () => {
             ].map((step, i) => (
               <FadeUp key={step.num} delay={i * 100}>
                 <div className="flex gap-4 sm:gap-10 py-8 border-b border-dashed border-stone-200 last:border-b-0">
-                  <span className="font-display text-4xl sm:text-5xl font-semibold text-stone-100 tabular-nums shrink-0 leading-none mt-1">
+                  <span className="font-display text-4xl sm:text-5xl font-semibold text-stone-300 tabular-nums shrink-0 leading-none mt-1">
                     {step.num}
                   </span>
                   <div>
@@ -443,60 +497,108 @@ const Index = () => {
             <h2 className="font-display text-3xl text-stone-900 mb-3 text-center">
               Compare plans
             </h2>
-            <p className="font-sans text-stone-500 mb-10 text-center max-w-md mx-auto leading-relaxed">
-              Payments aren't live yet - but here's what the plans will look
-              like.
+            <p className="font-sans text-stone-500 mb-10 text-center max-w-md mx-auto leading-relaxed text-sm">
+              Payments are not live yet. This is what the plans will look like.
             </p>
           </FadeUp>
           <FadeUp delay={100}>
-            <div className="rounded-2xl border border-stone-100 overflow-x-auto shadow-sm bg-white">
-              <table className="w-full min-w-[480px] text-sm font-sans">
+            {/* Desktop table */}
+            <div className="hidden sm:block rounded-2xl border border-stone-100 overflow-hidden shadow-sm bg-white">
+              <table className="w-full text-sm font-sans">
                 <thead>
-                  <tr className="bg-stone-50 border-b border-stone-100">
-                    <th className="p-4 text-left font-semibold text-stone-700">
+                  <tr className="border-b border-stone-100">
+                    <th className="p-4 text-left font-semibold text-stone-500 bg-stone-50 w-[40%]">
                       Feature
                     </th>
-                    <th className="p-4 text-center font-semibold text-stone-500">
-                      Free
+                    <th className="p-4 text-center bg-stone-50">
+                      <span className="block font-semibold text-stone-600 text-sm">Free</span>
+                      <span className="text-xs font-normal text-stone-400">$0 / mo</span>
                     </th>
-                    <th className="p-4 text-center font-semibold bg-primary text-white">
-                      Creator{" "}
-                      <span className="text-xs font-normal opacity-80">
-                        $49/mo
-                      </span>
+                    <th className="p-4 text-center bg-primary/10 border-x border-primary/20">
+                      <span className="block font-bold text-primary text-sm">Creator</span>
+                      <span className="text-xs font-normal text-primary/70">$49 / mo</span>
                     </th>
-                    <th className="p-4 text-center font-semibold text-stone-700">
-                      Pro{" "}
-                      <span className="text-xs font-normal text-stone-400">
-                        $99/mo
-                      </span>
+                    <th className="p-4 text-center bg-stone-50">
+                      <span className="block font-semibold text-stone-700 text-sm">Pro</span>
+                      <span className="text-xs font-normal text-stone-400">$99 / mo</span>
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {comparisonFeatures.map((row, i) => (
-                    <tr
-                      key={row.feature}
-                      className={`${i % 2 === 0 ? "bg-white" : "bg-stone-50/60"} hover:bg-stone-50 transition-colors`}
-                    >
-                      <td className="p-4 font-medium text-stone-700">
-                        {row.feature}
-                      </td>
-                      <td className="p-4 text-center text-stone-400">
-                        {row.free}
-                      </td>
-                      <td className="p-4 text-center text-stone-700 font-medium">
-                        {row.creator}
-                      </td>
-                      <td className="p-4 text-center text-stone-700">
-                        {row.pro}
-                      </td>
-                    </tr>
-                  ))}
+                  {comparisonFeatures.map((row, i) => {
+                    const Icon = row.icon;
+                    const renderCell = (val: string | boolean) => {
+                      if (val === true) return <Check className="h-4 w-4 text-amber-500 mx-auto" />;
+                      if (val === false) return <Minus className="h-4 w-4 text-stone-300 mx-auto" />;
+                      return <span className="font-medium text-stone-700">{val}</span>;
+                    };
+                    return (
+                      <tr
+                        key={row.feature}
+                        className={`${i % 2 === 0 ? "bg-white" : "bg-stone-50/50"} hover:bg-amber-50/30 transition-colors`}
+                      >
+                        <td className="p-4">
+                          <span className="flex items-center gap-2.5 text-stone-700 font-medium">
+                            <span className="flex items-center justify-center h-7 w-7 rounded-lg bg-amber-50 border border-amber-100 shrink-0">
+                              <Icon className="h-3.5 w-3.5 text-amber-500" />
+                            </span>
+                            {row.feature}
+                          </span>
+                        </td>
+                        <td className="p-4 text-center text-stone-500">{renderCell(row.free)}</td>
+                        <td className="p-4 text-center bg-primary/5 border-x border-primary/10">{renderCell(row.creator)}</td>
+                        <td className="p-4 text-center">{renderCell(row.pro)}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
-            <div className="text-center mt-5">
+
+            {/* Mobile cards */}
+            <div className="sm:hidden space-y-4">
+              {(["free", "creator", "pro"] as const).map((plan) => {
+                const labels = { free: "Free", creator: "Creator", pro: "Pro" };
+                const prices = { free: "$0 / mo", creator: "$49 / mo", pro: "$99 / mo" };
+                const isHighlight = plan === "creator";
+                return (
+                  <div
+                    key={plan}
+                    className={`rounded-2xl border overflow-hidden ${isHighlight ? "border-primary/30 shadow-md" : "border-stone-100 shadow-sm"}`}
+                  >
+                    <div className={`px-4 py-3 flex items-center justify-between ${isHighlight ? "bg-primary/10" : "bg-stone-50"}`}>
+                      <span className={`font-bold text-sm ${isHighlight ? "text-primary" : "text-stone-700"}`}>{labels[plan]}</span>
+                      <span className={`text-xs ${isHighlight ? "text-primary/70" : "text-stone-400"}`}>{prices[plan]}</span>
+                    </div>
+                    <div className="bg-white divide-y divide-stone-100">
+                      {comparisonFeatures.map((row) => {
+                        const Icon = row.icon;
+                        const val = row[plan];
+                        return (
+                          <div key={row.feature} className="flex items-center justify-between px-4 py-3">
+                            <span className="flex items-center gap-2 text-xs text-stone-600 font-medium">
+                              <Icon className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                              {row.feature}
+                            </span>
+                            <span>
+                              {val === true ? (
+                                <Check className="h-4 w-4 text-amber-500" />
+                              ) : val === false ? (
+                                <Minus className="h-4 w-4 text-stone-300" />
+                              ) : (
+                                <span className="text-xs font-semibold text-stone-700">{val}</span>
+                              )}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="text-center mt-6">
               <Link
                 to="/pricing"
                 className="font-sans text-sm font-medium text-amber-600 hover:underline inline-flex items-center gap-1"
@@ -556,17 +658,17 @@ const Index = () => {
 
       {/* Bottom CTA */}
       <section className="px-4 sm:px-6 py-12 sm:py-16">
-        <div className="mx-auto max-w-3xl rounded-3xl bg-stone-900 px-6 sm:px-8 py-12 sm:py-16 text-center">
-          <h2 className="font-display text-4xl text-white mb-3">
+        <div className="mx-auto max-w-3xl rounded-3xl bg-gradient-to-br from-amber-50 via-orange-50 to-stone-100 border border-amber-200/60 px-6 sm:px-8 py-12 sm:py-16 text-center shadow-sm">
+          <h2 className="font-display text-3xl sm:text-4xl text-stone-900 mb-3">
             Stop staring at a blank page
           </h2>
-          <p className="font-sans text-stone-400 mb-8 leading-relaxed">
+          <p className="font-sans text-stone-500 mb-8 leading-relaxed">
             Give it a rough idea. Get content worth posting. Takes 30 seconds.
           </p>
           <Link to="/signup">
             <Button
               size="lg"
-              className="gap-2 h-12 px-8 text-base rounded-xl bg-white text-stone-900 hover:bg-stone-100 font-sans font-semibold active:scale-[0.98] transition-all"
+              className="gap-2 h-12 px-8 text-base rounded-xl bg-primary text-white hover:bg-primary/90 font-sans font-semibold shadow-brand hover:shadow-[0_6px_20px_rgba(232,116,58,0.4)] active:scale-[0.98] transition-all"
             >
               Get started free <ChevronRight className="h-4 w-4" />
             </Button>
@@ -576,26 +678,37 @@ const Index = () => {
 
       {/* Footer */}
       <footer className="border-t border-stone-200 bg-background">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-16">
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-10 mb-14">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12 sm:py-16">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-10 mb-12">
+            {/* Brand */}
             <div className="col-span-2 md:col-span-1">
-              <span className="font-display font-semibold text-stone-900 text-lg">
-                Repurpose AI
-              </span>
-              <p className="font-sans text-sm text-stone-500 mt-3 leading-relaxed max-w-xs">
+              <div className="flex items-center gap-2 mb-3">
+                <img
+                  src="/favicon.svg"
+                  alt="Repurpose AI logo"
+                  className="h-6 w-6"
+                />
+                <span className="font-display font-semibold text-stone-900 text-base sm:text-lg">
+                  Repurpose AI
+                </span>
+              </div>
+              <p className="font-sans text-xs sm:text-sm text-stone-500 leading-relaxed max-w-xs">
                 Smart Content Engine for solo founders and creators. Give it
-                anything - get content worth posting.
+                anything and get content worth posting.
               </p>
             </div>
+
+            {/* Product */}
             <div>
-              <h4 className="font-sans text-sm font-semibold text-stone-700 mb-4">
+              <h4 className="font-sans text-xs sm:text-sm font-semibold text-stone-700 mb-3 sm:mb-4 flex items-center gap-1.5">
+                <Zap className="h-3.5 w-3.5 text-amber-500" />
                 Product
               </h4>
-              <ul className="space-y-2.5">
+              <ul className="space-y-2 sm:space-y-2.5">
                 <li>
                   <Link
                     to="/pricing"
-                    className="font-sans text-sm text-stone-500 hover:text-stone-800 transition-colors"
+                    className="font-sans text-xs sm:text-sm text-stone-500 hover:text-stone-800 transition-colors"
                   >
                     Pricing
                   </Link>
@@ -603,22 +716,25 @@ const Index = () => {
                 <li>
                   <Link
                     to="/dashboard"
-                    className="font-sans text-sm text-stone-500 hover:text-stone-800 transition-colors"
+                    className="font-sans text-xs sm:text-sm text-stone-500 hover:text-stone-800 transition-colors"
                   >
                     Dashboard
                   </Link>
                 </li>
               </ul>
             </div>
+
+            {/* Account */}
             <div>
-              <h4 className="font-sans text-sm font-semibold text-stone-700 mb-4">
+              <h4 className="font-sans text-xs sm:text-sm font-semibold text-stone-700 mb-3 sm:mb-4 flex items-center gap-1.5">
+                <KeyRound className="h-3.5 w-3.5 text-amber-500" />
                 Account
               </h4>
-              <ul className="space-y-2.5">
+              <ul className="space-y-2 sm:space-y-2.5">
                 <li>
                   <Link
                     to="/login"
-                    className="font-sans text-sm text-stone-500 hover:text-stone-800 transition-colors"
+                    className="font-sans text-xs sm:text-sm text-stone-500 hover:text-stone-800 transition-colors"
                   >
                     Login
                   </Link>
@@ -626,38 +742,70 @@ const Index = () => {
                 <li>
                   <Link
                     to="/signup"
-                    className="font-sans text-sm text-stone-500 hover:text-stone-800 transition-colors"
+                    className="font-sans text-xs sm:text-sm text-stone-500 hover:text-stone-800 transition-colors"
                   >
                     Sign Up
                   </Link>
                 </li>
               </ul>
             </div>
+
+            {/* Connect */}
             <div>
-              <h4 className="font-sans text-sm font-semibold text-stone-700 mb-4">
-                Stack
+              <h4 className="font-sans text-xs sm:text-sm font-semibold text-stone-700 mb-3 sm:mb-4 flex items-center gap-1.5">
+                <Globe className="h-3.5 w-3.5 text-amber-500" />
+                Connect
               </h4>
-              <ul className="space-y-2.5">
+              <ul className="space-y-2 sm:space-y-2.5">
                 <li>
-                  <span className="font-sans text-sm text-stone-400">
-                    React + TypeScript
-                  </span>
+                  <a
+                    href="https://muhammadtanveerabbas.vercel.app"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-sans text-xs sm:text-sm text-stone-500 hover:text-stone-800 transition-colors"
+                  >
+                    Portfolio
+                  </a>
                 </li>
                 <li>
-                  <span className="font-sans text-sm text-stone-400">
-                    Supabase
-                  </span>
-                </li>
-                <li>
-                  <span className="font-sans text-sm text-stone-400">
-                    Groq (Llama 3.3)
-                  </span>
+                  <a
+                    href="https://github.com/MuhammadTanveerAbbas"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-sans text-xs sm:text-sm text-stone-500 hover:text-stone-800 transition-colors"
+                  >
+                    GitHub
+                  </a>
                 </li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-stone-200 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-400 font-sans">
-            <p>© 2026 Repurpose AI. Early access - no payments active.</p>
+
+          <div className="border-t border-stone-200 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3 font-sans">
+            <p className="text-xs sm:text-sm text-stone-900 font-medium order-2 sm:order-1">
+              2026 Repurpose AI. Early access, no payments active.
+            </p>
+            <a
+              href="https://muhammadtanveerabbas.vercel.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group inline-flex items-center gap-1.5 order-1 sm:order-2"
+            >
+              <span className="text-xs sm:text-sm text-stone-800 font-medium">Made by</span>
+              <span
+                className="text-xs sm:text-sm font-bold tracking-tight"
+                style={{
+                  background: "linear-gradient(135deg, #e8743a 0%, #f59e0b 50%, #ea580c 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  textShadow: "none",
+                  filter: "drop-shadow(0 1px 2px rgba(232,116,58,0.35))",
+                }}
+              >
+                Tanveer
+              </span>
+            </a>
           </div>
         </div>
       </footer>

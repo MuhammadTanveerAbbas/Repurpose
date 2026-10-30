@@ -48,12 +48,13 @@ export default async function handler(
     return response.status(200).json(data);
   } catch (error) {
     const status = error instanceof GroqServiceError ? error.status : 500;
+    const message = error instanceof Error ? error.message : "AI service temporarily unavailable";
     console.error(
       "Groq proxy error:",
       error instanceof Error ? error.message : error,
     );
     return response.status(status).json({
-      error: "AI service temporarily unavailable",
+      error: message,
     });
   }
 }

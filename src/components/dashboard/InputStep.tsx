@@ -82,9 +82,16 @@ export const InputStep = ({
       const data = await res.json().catch(() => null);
 
       if (!res.ok || !Array.isArray(data) || data.length === 0) {
-        toast.error(
-          data?.error ?? "Couldn't fetch this transcript. Paste it manually instead.",
-        );
+        const errMsg = !res.ok
+          ? (data as { error?: string } | null)?.error ?? "Couldn't fetch transcript."
+          : "This video has no usable captions. Paste it manually instead.";
+        // Auto-switch to Transcript mode so the user can paste manually
+        setMode("transcript");
+        setInput("");
+        toast.error(errMsg, {
+          description: "Switched to Transcript mode — paste the captions manually.",
+          duration: 6000,
+        });
         return;
       }
 
@@ -129,8 +136,8 @@ export const InputStep = ({
   const currentMode = modes.find((m) => m.value === mode)!;
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="bg-white border border-stone-100 rounded-2xl p-5 sm:p-6 shadow-sm">
+    <div className="max-w-3xl mx-auto">
+      <div className="bg-white border border-stone-100 rounded-2xl p-4 sm:p-5 sm:p-6 shadow-sm">
         <h2 className="font-display text-xl text-stone-900 mb-1">
           What do you want to create?
         </h2>

@@ -107,7 +107,7 @@ Return ONLY valid JSON:
   const sortedHooks = [...hooks].sort((a, b) => (b.hook_rating ?? 0) - (a.hook_rating ?? 0));
 
   return (
-    <div className="bg-white border border-stone-100 rounded-2xl p-5 shadow-sm space-y-5">
+        <div className="bg-white border border-stone-100 rounded-2xl p-4 sm:p-5 shadow-sm space-y-5">
       <div>
         <h3 className="font-display text-lg text-stone-900 mb-1">
           Hook Generator
@@ -121,7 +121,7 @@ Return ONLY valid JSON:
         <Label className="font-sans text-sm font-medium text-stone-700">
           Topic or idea
         </Label>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Input
             placeholder='e.g. "Why most freelancers undercharge"'
             value={topic}
@@ -129,25 +129,27 @@ Return ONLY valid JSON:
             onKeyDown={(e) => e.key === "Enter" && handleGenerate()}
             className="h-10 rounded-xl border-stone-200 bg-white text-stone-900 placeholder:text-stone-400 focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 font-sans"
           />
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="w-40 h-10 rounded-xl border-stone-200 font-sans text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {HOOK_CATEGORIES.map((c) => (
-                <SelectItem key={c.value} value={c.value} className="font-sans text-xs">
-                  {c.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button
-            onClick={handleGenerate}
-            disabled={loading}
-            className="h-10 px-4 rounded-xl bg-primary hover:bg-primary/90 text-white font-sans font-semibold shadow-brand shrink-0 transition-all active:scale-[0.98]"
-          >
-            {loading ? "..." : "Generate"}
-          </Button>
+          <div className="flex gap-2">
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger className="flex-1 sm:w-40 h-10 rounded-xl border-stone-200 font-sans text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {HOOK_CATEGORIES.map((c) => (
+                  <SelectItem key={c.value} value={c.value} className="font-sans text-xs">
+                    {c.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              onClick={handleGenerate}
+              disabled={loading}
+              className="h-10 px-4 rounded-xl bg-primary hover:bg-primary/90 text-white font-sans font-semibold shadow-brand shrink-0 transition-all active:scale-[0.98]"
+            >
+              {loading ? "..." : "Generate"}
+            </Button>
+          </div>
         </div>
       </div>
 

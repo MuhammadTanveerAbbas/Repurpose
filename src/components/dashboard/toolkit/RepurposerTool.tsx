@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ALL_FORMATS, FORMAT_ICONS, FORMAT_CHAR_LIMITS, callGroq, checkAndIncrementUsage } from "@/lib/groq";
+import { ALL_FORMATS, FORMAT_CHAR_LIMITS, callGroq, checkAndIncrementUsage } from "@/lib/groq";
 import type { ContentFormat } from "@/lib/groq";
 import { cn } from "@/lib/utils";
 import { Copy, CheckCircle2, RefreshCw, Sparkles } from "lucide-react";
@@ -98,7 +98,7 @@ Output only the final content, nothing else.`;
   const charCount = output.length;
 
   return (
-    <div className="bg-white border border-stone-100 rounded-2xl p-5 shadow-sm space-y-5">
+    <div className="bg-white border border-stone-100 rounded-2xl p-4 sm:p-5 shadow-sm space-y-5">
       <div>
         <h3 className="font-display text-lg text-stone-900 mb-1">
           Content Repurposer
@@ -126,7 +126,7 @@ Output only the final content, nothing else.`;
                     : "bg-white border-stone-200 text-stone-600 hover:border-stone-300",
                 )}
               >
-                {FORMAT_ICONS[f]} {f}
+                {f}
               </button>
             ))}
           </div>
@@ -148,7 +148,7 @@ Output only the final content, nothing else.`;
                   sourceFormat === f && "opacity-30 pointer-events-none",
                 )}
               >
-                {FORMAT_ICONS[f]} {f}
+                {f}
               </button>
             ))}
           </div>
@@ -178,7 +178,7 @@ Output only the final content, nothing else.`;
           <div className="flex items-center gap-1.5 mb-1">
             <Sparkles className="h-3 w-3 text-amber-500" />
             <p className="font-sans text-[11px] font-semibold uppercase tracking-wider text-amber-600">
-              {FORMAT_ICONS[targetFormat]} {targetFormat} rules
+              {targetFormat} rules
             </p>
           </div>
           <p className="font-sans text-xs text-stone-600 leading-relaxed">
@@ -214,7 +214,7 @@ Output only the final content, nothing else.`;
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label className="font-sans text-sm font-medium text-stone-700">
-              {FORMAT_ICONS[targetFormat]} {targetFormat}
+              {targetFormat}
             </Label>
             <div className="flex items-center gap-2">
               {charLimit && (
